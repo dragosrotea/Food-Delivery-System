@@ -112,18 +112,9 @@ mvn exec:java
 
 The first command compiles the project and runs the JUnit tests. The second command opens the Swing application.
 
-## Current limitations
+## Future improvements
 
-This is still the first desktop version of the project. Some important improvements are planned:
-
-- Hash passwords and properly protect each user role
-- Use `BigDecimal` instead of `double` for prices
-- Improve validation and error handling
-- Add more unit and database tests
-- Replace the Swing interface with a React frontend
-- Rebuild the Java backend using Spring Boot and REST endpoints
-- Make the whole application easier to run with Docker
-
-## Original documentation
-
-The reports made for the university assignment are available in [docs/coursework](docs/coursework).
+- Migrate the backend to Spring Boot
+- Build a React web interface
+- Add secure authentication
+- Add more automated tests
