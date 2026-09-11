@@ -2,7 +2,7 @@
 
 This is a Java desktop application I originally built as a university OOP project. It simulates a simple food delivery service with separate options for customers, drivers, and administrators.
 
-The current version uses Java Swing for the interface and Microsoft SQL Server for storing the data. I am now improving the original project step by step, starting with a cleaner Maven setup and proper automated tests. A web version with Spring Boot and React is planned for later.
+The original version uses Java Swing for the interface and Microsoft SQL Server for storing the data. I am now moving it step by step to a Spring Boot backend, with a React web interface planned for later. The Swing source is still kept temporarily while the backend is being built.
 
 ## What the application can do
 
@@ -27,6 +27,7 @@ The current version uses Java Swing for the interface and Microsoft SQL Server f
 ## Technologies used
 
 - Java 17
+- Spring Boot
 - Java Swing
 - Microsoft SQL Server
 - JDBC
@@ -40,13 +41,14 @@ The current version uses Java Swing for the interface and Microsoft SQL Server f
 src/
 ├── main/
 │   ├── java/
+│   │   ├── com/dragosrotea/fooddelivery/
 │   │   ├── database/
 │   │   ├── exceptions/
 │   │   ├── model/
 │   │   ├── services/
 │   │   └── view/
 │   └── resources/db/migration/
-└── test/java/model/
+└── test/java/
 ```
 
 The interface calls the service classes, the services handle the application logic, and the DAO classes communicate with the database.
@@ -103,18 +105,22 @@ $env:DB_PASSWORD="your_database_password"
 
 The `.env.example` file contains the same variable names as a quick reference.
 
-### 3. Build and start the application
+### 3. Build and start the backend
 
 ```bash
 mvn clean verify
-mvn exec:java
+mvn spring-boot:run
 ```
 
-The first command compiles the project and runs the JUnit tests. The second command opens the Swing application.
+After it starts, open `http://localhost:8080/api/health`. The response should be:
+
+```json
+{"status":"UP"}
+```
 
 ## Future improvements
 
-- Migrate the backend to Spring Boot
+- Continue moving the existing features into the Spring Boot backend
 - Build a React web interface
 - Add secure authentication
 - Add more automated tests
