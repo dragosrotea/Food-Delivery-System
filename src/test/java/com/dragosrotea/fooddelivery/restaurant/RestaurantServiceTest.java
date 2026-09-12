@@ -1,0 +1,91 @@
+package com.dragosrotea.fooddelivery.restaurant;
+
+import com.dragosrotea.fooddelivery.restaurant.exception.DuplicateRestaurantException;
+import com.dragosrotea.fooddelivery.restaurant.exception.RestaurantNotFoundException;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+@ExtendWith(MockitoExtension.class)
+class RestaurantServiceTest {
+
+    @Mock
+    private RestaurantRepository restaurantRepository;
+
+    @InjectMocks
+    private RestaurantService restaurantService;
+
+    @Test
+    void returnsRestaurantWhenItExists() {
+        Restaurant restaurant = new Restaurant("Urban Pizza", "10 Main Street", "Bucharest");
+        when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
+
+        Restaurant result = restaurantService.getRestaurant(1L);
+
+        assertEquals("Urban Pizza", result.getName());
+    }
+
+    @Test
+    void throwsExceptionWhenRestaurantDoesNotExist() {
+        when(restaurantRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(
+                RestaurantNotFoundException.class,
+                () -> restaurantService.getRestaurant(99L)
+        );
+    }
+
+    @Test
+    void rejectsDuplicateRestaurantName() {
+        when(restaurantRepository.existsByNameIgnoreCase("Urban Pizza")).thenReturn(true);
+
+        assertThrows(
+                DuplicateRestaurantException.class,
+                () -> restaurantService.createRestaurant(
+                        "Urban Pizza",
+                        "10 Main Street",
+                        "Bucharest"
+                )
+        );
+        verify(restaurantRepository, never()).save(any(Restaurant.class));
+    }
+
+    @Test
+    void savesNewRestaurant() {
+        when(restaurantRepository.existsByNameIgnoreCase("Urban Pizza")).thenReturn(false);
+        when(restaurantRepository.save(any(Restaurant.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        Restaurant result = restaurantService.createRestaurant(
+                "Urban Pizza",
+                "10 Main Street",
+                "Bucharest"
+        );
+
+        assertEquals("Urban Pizza", result.getName());
+        assertEquals("10 Main Street", result.getStreet());
+        assertEquals("Bucharest", result.getCity());
+        verify(restaurantRepository).save(any(Restaurant.class));
+    }
+
+    @Test
+    void deletesExistingRestaurant() {
+        Restaurant restaurant = new Restaurant("Urban Pizza", "10 Main Street", "Bucharest");
+        when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
+
+        restaurantService.deleteRestaurant(1L);
+
+        verify(restaurantRepository).delete(restaurant);
+    }
+}
