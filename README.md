@@ -2,7 +2,7 @@
 
 This is a Java desktop application I originally built as a university OOP project. It simulates a simple food delivery service with separate options for customers, drivers, and administrators.
 
-The original version uses Java Swing for the interface and Microsoft SQL Server for storing the data. I am now moving it step by step to a Spring Boot backend, with a React web interface planned for later. The Swing source is still kept temporarily while the backend is being built.
+The original version uses Java Swing and Microsoft SQL Server. I am now moving it step by step to a Spring Boot backend with PostgreSQL, with a React web interface planned for later. The Swing source is still kept temporarily while the backend is being built.
 
 ## What the application can do
 
@@ -28,12 +28,13 @@ The original version uses Java Swing for the interface and Microsoft SQL Server 
 
 - Java 17
 - Spring Boot
-- Java Swing
-- Microsoft SQL Server
-- JDBC
+- PostgreSQL
+- JPA and Hibernate
+- Flyway
 - Maven
 - JUnit 5
 - GitHub Actions
+- Java Swing and Microsoft SQL Server in the original version
 
 ## Project structure
 
@@ -47,14 +48,17 @@ src/
 │   │   ├── model/
 │   │   ├── services/
 │   │   └── view/
-│   └── resources/db/migration/
-└── test/java/
+│   └── resources/
+│       └── db/migration/
+└── test/
+    ├── java/
+    └── resources/
 ```
 
-The interface calls the service classes, the services handle the application logic, and the DAO classes communicate with the database.
+The new backend uses Spring Boot, JPA, and PostgreSQL. The original Swing source remains in the repository while its features are moved to the backend.
 
 ```text
-Swing interface -> Services -> DAOs -> SQL Server
+Spring Boot -> JPA/Hibernate -> PostgreSQL
 ```
 
 ## How to run it
@@ -63,47 +67,37 @@ You need:
 
 - JDK 17 or newer
 - Maven
-- Microsoft SQL Server
-- `sqlcmd` or another way to run SQL scripts
+- PostgreSQL
 
 ### 1. Create the database
 
-Run the two scripts in this order:
+Create an empty PostgreSQL database named `food_delivery`:
 
 ```bash
-sqlcmd -S localhost -U <database-user> -P <database-password> -i src/main/resources/db/migration/V1__create_schema.sql
-sqlcmd -S localhost -U <database-user> -P <database-password> -i src/main/resources/db/migration/V2__seed_demo_data.sql
+createdb -U postgres food_delivery
 ```
 
-The second script adds a few restaurants, menu items, and demo accounts.
-
-| Role | Username | Password |
-|---|---|---|
-| Customer | `customer_demo` | `customer_demo` |
-| Driver | `driver_demo` | `driver_demo` |
-| Admin | `admin_demo` | `admin_demo` |
-
-These accounts are only for testing the application locally. The current school-project version still stores passwords as plain text, which will be replaced with password hashing when authentication is rebuilt with Spring Security.
+Flyway creates the restaurant and menu tables automatically when the backend starts.
 
 ### 2. Configure the database connection
 
 Set these environment variables before starting the application:
 
 ```bash
-export DB_URL='jdbc:sqlserver://localhost:1433;databaseName=FoodDeliveryDB;encrypt=true;trustServerCertificate=true'
+export DB_URL='jdbc:postgresql://localhost:5432/food_delivery'
 export DB_USER='your_database_user'
 export DB_PASSWORD='your_database_password'
 ```
 
-On Windows PowerShell, the same variables can be set like this:
+On Windows PowerShell:
 
 ```powershell
-$env:DB_URL="jdbc:sqlserver://localhost:1433;databaseName=FoodDeliveryDB;encrypt=true;trustServerCertificate=true"
+$env:DB_URL="jdbc:postgresql://localhost:5432/food_delivery"
 $env:DB_USER="your_database_user"
 $env:DB_PASSWORD="your_database_password"
 ```
 
-The `.env.example` file contains the same variable names as a quick reference.
+The `.env.example` file contains the same variable names as a reference.
 
 ### 3. Build and start the backend
 
