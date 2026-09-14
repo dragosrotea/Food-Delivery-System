@@ -63,6 +63,17 @@ public class MenuItem {
         this.category = category;
     }
 
+    public void updateDetails(String name, String description, BigDecimal price, String category) {
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.category = category;
+    }
+
+    public void changeAvailability(boolean available) {
+        this.available = available;
+    }
+
     public Long getId() {
         return id;
     }
