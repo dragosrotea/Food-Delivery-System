@@ -4,13 +4,11 @@ import com.dragosrotea.fooddelivery.restaurant.exception.DuplicateRestaurantExce
 import com.dragosrotea.fooddelivery.restaurant.exception.RestaurantNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
 
 @Service
 @Transactional
 public class RestaurantService {
-
     private final RestaurantRepository restaurantRepository;
 
     public RestaurantService(RestaurantRepository restaurantRepository) {
@@ -19,6 +17,11 @@ public class RestaurantService {
 
     @Transactional(readOnly = true)
     public List<Restaurant> getAllRestaurants() {
+        return restaurantRepository.findByActiveTrue();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Restaurant> getAllRestaurantsForAdmin() {
         return restaurantRepository.findAll();
     }
 
@@ -32,12 +35,12 @@ public class RestaurantService {
         if (restaurantRepository.existsByNameIgnoreCase(name)) {
             throw new DuplicateRestaurantException(name);
         }
-
         return restaurantRepository.save(new Restaurant(name, street, city));
     }
 
-    public void deleteRestaurant(Long id) {
+    public Restaurant changeAvailability(Long id, boolean active) {
         Restaurant restaurant = getRestaurant(id);
-        restaurantRepository.delete(restaurant);
+        restaurant.changeActiveStatus(active);
+        return restaurant;
     }
 }
