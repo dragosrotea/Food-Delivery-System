@@ -38,6 +38,15 @@ public class RestaurantService {
         return restaurantRepository.save(new Restaurant(name, street, city));
     }
 
+    public Restaurant updateRestaurant(Long id, String name, String street, String city) {
+        Restaurant restaurant = getRestaurant(id);
+        if (restaurantRepository.existsByNameIgnoreCaseAndIdNot(name, id)) {
+            throw new DuplicateRestaurantException(name);
+        }
+        restaurant.updateDetails(name, street, city);
+        return restaurant;
+    }
+
     public Restaurant changeAvailability(Long id, boolean active) {
         Restaurant restaurant = getRestaurant(id);
         restaurant.changeActiveStatus(active);

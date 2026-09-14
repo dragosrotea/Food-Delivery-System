@@ -24,6 +24,12 @@ public class Restaurant {
         this.city = city;
     }
 
+    public void updateDetails(String name, String street, String city) {
+        this.name = name;
+        this.street = street;
+        this.city = city;
+    }
+
     public void changeActiveStatus(boolean active) { this.active = active; }
     public Long getId() { return id; }
     public String getName() { return name; }

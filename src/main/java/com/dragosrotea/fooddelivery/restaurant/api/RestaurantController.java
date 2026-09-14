@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -60,6 +61,18 @@ public class RestaurantController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(RestaurantResponse.from(restaurant));
+    }
+
+    @Operation(summary = "Update restaurant details")
+    @SecurityRequirement(name = "bearerAuth")
+    @PutMapping("/{restaurantId}")
+    public RestaurantResponse updateRestaurant(
+            @PathVariable Long restaurantId,
+            @Valid @RequestBody UpdateRestaurantRequest request
+    ) {
+        return RestaurantResponse.from(restaurantService.updateRestaurant(
+                restaurantId, request.name(), request.street(), request.city()
+        ));
     }
 
     @Operation(summary = "Activate or deactivate a restaurant")
