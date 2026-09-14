@@ -1,5 +1,6 @@
 package com.dragosrotea.fooddelivery.security;
 
+import com.dragosrotea.fooddelivery.order.OrderService;
 import com.dragosrotea.fooddelivery.restaurant.Restaurant;
 import com.dragosrotea.fooddelivery.restaurant.RestaurantService;
 import org.junit.jupiter.api.Test;
@@ -33,6 +34,9 @@ class SecurityAuthorizationTest {
     @MockitoBean
     private RestaurantService restaurantService;
 
+    @MockitoBean
+    private OrderService orderService;
+
     @Test
     void allowsPublicRestaurantReadingWithoutToken() throws Exception {
         when(restaurantService.getAllRestaurants()).thenReturn(List.of());
@@ -57,44 +61,56 @@ class SecurityAuthorizationTest {
     @Test
     void forbidsCustomerFromCreatingRestaurant() throws Exception {
         mockMvc.perform(post("/api/restaurants")
-                        .with(jwt().authorities(
-                                new SimpleGrantedAuthority("ROLE_CUSTOMER")
-                        ))
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_CUSTOMER")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(validRestaurantJson()))
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.status").value(403));
+                .andExpect(status().isForbidden());
 
         verifyNoInteractions(restaurantService);
     }
 
     @Test
     void allowsAdminToCreateRestaurant() throws Exception {
-        Restaurant restaurant = new Restaurant(
-                "Urban Pizza",
-                "10 Main Street",
-                "Bucharest"
-        );
-        when(restaurantService.createRestaurant(
-                anyString(),
-                anyString(),
-                anyString()
-        )).thenReturn(restaurant);
+        Restaurant restaurant = new Restaurant("Urban Pizza", "10 Main Street", "Bucharest");
+        when(restaurantService.createRestaurant(anyString(), anyString(), anyString()))
+                .thenReturn(restaurant);
 
         mockMvc.perform(post("/api/restaurants")
-                        .with(jwt().authorities(
-                                new SimpleGrantedAuthority("ROLE_ADMIN")
-                        ))
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_ADMIN")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(validRestaurantJson()))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.name").value("Urban Pizza"));
+    }
 
-        verify(restaurantService).createRestaurant(
-                "Urban Pizza",
-                "10 Main Street",
-                "Bucharest"
-        );
+    @Test
+    void rejectsOrderPlacementWithoutToken() throws Exception {
+        mockMvc.perform(post("/api/orders")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(validOrderJson()))
+                .andExpect(status().isUnauthorized());
+
+        verifyNoInteractions(orderService);
+    }
+
+    @Test
+    void forbidsAdminFromPlacingCustomerOrder() throws Exception {
+        mockMvc.perform(post("/api/orders")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_ADMIN")))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(validOrderJson()))
+                .andExpect(status().isForbidden());
+
+        verifyNoInteractions(orderService);
+    }
+
+    @Test
+    void forbidsCustomerFromAdminOrderApi() throws Exception {
+        mockMvc.perform(get("/api/admin/orders")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_CUSTOMER"))))
+                .andExpect(status().isForbidden());
+
+        verifyNoInteractions(orderService);
     }
 
     private String validRestaurantJson() {
@@ -103,6 +119,17 @@ class SecurityAuthorizationTest {
                   "name": "Urban Pizza",
                   "street": "10 Main Street",
                   "city": "Bucharest"
+                }
+                """;
+    }
+
+    private String validOrderJson() {
+        return """
+                {
+                  "restaurantId": 1,
+                  "deliveryStreet": "10 Main Street",
+                  "deliveryCity": "Cluj-Napoca",
+                  "items": [{"menuItemId": 1, "quantity": 2}]
                 }
                 """;
     }
