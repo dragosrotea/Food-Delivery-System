@@ -4,6 +4,8 @@ import com.dragosrotea.fooddelivery.restaurant.exception.DuplicateMenuItemExcept
 import com.dragosrotea.fooddelivery.restaurant.exception.DuplicateRestaurantException;
 import com.dragosrotea.fooddelivery.restaurant.exception.InvalidMenuItemPriceException;
 import com.dragosrotea.fooddelivery.restaurant.exception.RestaurantNotFoundException;
+import com.dragosrotea.fooddelivery.user.exception.EmailAlreadyRegisteredException;
+import com.dragosrotea.fooddelivery.user.exception.InvalidCredentialsException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,21 +29,29 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({
             DuplicateRestaurantException.class,
-            DuplicateMenuItemException.class
+            DuplicateMenuItemException.class,
+            EmailAlreadyRegisteredException.class
     })
-    public ResponseEntity<ApiError> handleDuplicateResource(
+    public ResponseEntity<ApiError> handleConflict(
             RuntimeException exception,
             HttpServletRequest request
     ) {
         return buildError(HttpStatus.CONFLICT, exception.getMessage(), request, Map.of());
     }
 
-    @ExceptionHandler(InvalidMenuItemPriceException.class)
-    public ResponseEntity<ApiError> handleInvalidPrice(
-            InvalidMenuItemPriceException exception,
+    @ExceptionHandler({
+            InvalidMenuItemPriceException.class,
+            InvalidCredentialsException.class
+    })
+    public ResponseEntity<ApiError> handleBadRequest(
+            RuntimeException exception,
             HttpServletRequest request
     ) {
-        return buildError(HttpStatus.BAD_REQUEST, exception.getMessage(), request, Map.of());
+        HttpStatus status = exception instanceof InvalidCredentialsException
+                ? HttpStatus.UNAUTHORIZED
+                : HttpStatus.BAD_REQUEST;
+
+        return buildError(status, exception.getMessage(), request, Map.of());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
