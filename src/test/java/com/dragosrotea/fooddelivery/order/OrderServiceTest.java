@@ -55,6 +55,7 @@ class OrderServiceTest {
         when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
         when(menuItemRepository.findById(10L)).thenReturn(Optional.of(menuItem));
         when(restaurant.getId()).thenReturn(1L);
+        when(restaurant.isActive()).thenReturn(true);
         when(menuItem.getRestaurant()).thenReturn(restaurant);
         when(menuItem.isAvailable()).thenReturn(true);
         when(menuItem.getName()).thenReturn("Pizza");

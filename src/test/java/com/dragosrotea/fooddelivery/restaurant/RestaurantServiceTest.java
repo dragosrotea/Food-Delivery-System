@@ -80,12 +80,26 @@ class RestaurantServiceTest {
     }
 
     @Test
-    void deletesExistingRestaurant() {
+    void changesRestaurantAvailabilityWithoutDeletingIt() {
         Restaurant restaurant = new Restaurant("Urban Pizza", "10 Main Street", "Bucharest");
         when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
 
-        restaurantService.deleteRestaurant(1L);
+        Restaurant result = restaurantService.changeAvailability(1L, false);
 
-        verify(restaurantRepository).delete(restaurant);
+        assertEquals(false, result.isActive());
+        verify(restaurantRepository, never()).delete(any(Restaurant.class));
+    }
+
+    @Test
+    void updatesRestaurantDetails() {
+        Restaurant restaurant = new Restaurant("Urban Pizza", "10 Main Street", "Bucharest");
+        when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
+        when(restaurantRepository.existsByNameIgnoreCaseAndIdNot("New Name", 1L)).thenReturn(false);
+
+        Restaurant result = restaurantService.updateRestaurant(1L, "New Name", "20 Main Street", "Cluj");
+
+        assertEquals("New Name", result.getName());
+        assertEquals("20 Main Street", result.getStreet());
     }
 }
+

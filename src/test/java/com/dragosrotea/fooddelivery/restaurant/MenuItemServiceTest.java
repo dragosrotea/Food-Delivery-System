@@ -145,4 +145,15 @@ class MenuItemServiceTest {
     private Restaurant restaurant() {
         return new Restaurant("Urban Pizza", "10 Main Street", "Bucharest");
     }
+    @Test
+    void changesMenuItemAvailability() {
+        Restaurant restaurant = restaurant();
+        MenuItem item = new MenuItem(restaurant, "Pizza", "Fresh", new BigDecimal("20.00"), "Pizza");
+        when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
+        when(menuItemRepository.findByIdAndRestaurantId(2L, 1L)).thenReturn(Optional.of(item));
+
+        MenuItem result = menuItemService.changeAvailability(1L, 2L, false);
+
+        assertEquals(false, result.isAvailable());
+    }
 }
