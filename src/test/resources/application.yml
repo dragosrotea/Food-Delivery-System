@@ -11,3 +11,10 @@ spring:
 
   flyway:
     enabled: false
+
+app:
+  security:
+    jwt:
+      secret: test-secret-key-that-is-at-least-32-bytes-long
+      expiration-seconds: 3600
+      issuer: food-delivery-api
