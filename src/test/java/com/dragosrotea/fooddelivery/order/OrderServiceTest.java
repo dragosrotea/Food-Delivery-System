@@ -82,6 +82,7 @@ class OrderServiceTest {
     void rejectsQuantityThatIsNotPositive() {
         when(userRepository.findByEmail("customer@example.com")).thenReturn(Optional.of(customer));
         when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
+        when(restaurant.isActive()).thenReturn(true);
 
         assertThrows(InvalidOrderQuantityException.class, () -> orderService.placeOrder(
                 "customer@example.com",
@@ -97,6 +98,7 @@ class OrderServiceTest {
         Restaurant anotherRestaurant = org.mockito.Mockito.mock(Restaurant.class);
         when(userRepository.findByEmail("customer@example.com")).thenReturn(Optional.of(customer));
         when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
+        when(restaurant.isActive()).thenReturn(true);
         when(menuItemRepository.findById(10L)).thenReturn(Optional.of(menuItem));
         when(menuItem.getRestaurant()).thenReturn(anotherRestaurant);
         when(anotherRestaurant.getId()).thenReturn(2L);
