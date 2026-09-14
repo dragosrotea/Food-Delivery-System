@@ -11,3 +11,14 @@ spring:
 
   flyway:
     enabled: true
+
+app:
+  security:
+    jwt:
+      secret: ${JWT_SECRET}
+      expiration-seconds: ${JWT_EXPIRATION_SECONDS:3600}
+      issuer: https://food-delivery-api.local
+
+  admin:
+    email: ${APP_ADMIN_EMAIL:}
+    password: ${APP_ADMIN_PASSWORD:}
