@@ -38,6 +38,6 @@ final class JsonSecurityErrorWriter {
     private static String escape(String value) {
         return value
                 .replace("\\", "\\\\")
-                .replace(""", "\\"");
+                .replace("\"", "\\\"");
     }
 }
