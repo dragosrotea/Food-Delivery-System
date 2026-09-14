@@ -34,6 +34,7 @@ The original version uses Java Swing and Microsoft SQL Server. I am now moving i
 - Maven
 - JUnit 5
 - GitHub Actions
+- OpenAPI and Swagger UI
 - Java Swing and Microsoft SQL Server in the original version
 
 ## Project structure
@@ -111,6 +112,8 @@ After it starts, open `http://localhost:8080/api/health`. The response should be
 ```json
 {"status":"UP"}
 ```
+
+Interactive API documentation is available at `http://localhost:8080/swagger-ui.html`.
 
 ## Future improvements
 
