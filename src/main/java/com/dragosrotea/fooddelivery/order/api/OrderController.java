@@ -1,5 +1,9 @@
 package com.dragosrotea.fooddelivery.order.api;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 import com.dragosrotea.fooddelivery.order.FoodOrder;
 import com.dragosrotea.fooddelivery.order.OrderLineCommand;
 import com.dragosrotea.fooddelivery.order.OrderService;
@@ -17,6 +21,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+@Tag(name = "Customer Orders")
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping("/api/orders")
 public class OrderController {
@@ -27,6 +33,7 @@ public class OrderController {
         this.orderService = orderService;
     }
 
+    @Operation(summary = "Place an order")
     @PostMapping
     public ResponseEntity<OrderResponse> placeOrder(
             @AuthenticationPrincipal Jwt jwt,
@@ -47,6 +54,7 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.CREATED).body(OrderResponse.from(order));
     }
 
+    @Operation(summary = "List the current customer's orders")
     @GetMapping
     public List<OrderResponse> getMyOrders(@AuthenticationPrincipal Jwt jwt) {
         return orderService.getCustomerOrders(jwt.getSubject())
@@ -55,6 +63,7 @@ public class OrderController {
                 .toList();
     }
 
+    @Operation(summary = "Get an accessible order")
     @GetMapping("/{orderId}")
     public OrderResponse getOrder(
             @AuthenticationPrincipal Jwt jwt,
@@ -64,6 +73,7 @@ public class OrderController {
         return OrderResponse.from(orderService.getOrder(jwt.getSubject(), admin, orderId));
     }
 
+    @Operation(summary = "Cancel an eligible order")
     @PostMapping("/{orderId}/cancel")
     public OrderResponse cancelOrder(
             @AuthenticationPrincipal Jwt jwt,
