@@ -18,4 +18,8 @@ public record RegisterRequest(
         )
         String password
 ) {
+
+    public RegisterRequest {
+        email = email == null ? null : email.trim();
+    }
 }

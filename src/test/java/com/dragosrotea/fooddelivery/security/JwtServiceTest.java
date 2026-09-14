@@ -20,7 +20,7 @@ class JwtServiceTest {
         JwtProperties properties = new JwtProperties(
                 "test-secret-key-that-is-at-least-32-bytes-long",
                 3600L,
-                "food-delivery-api"
+                "https://food-delivery-api.local"
         );
         JwtConfig config = new JwtConfig();
         SecretKey key = config.jwtSecretKey(properties);
@@ -38,7 +38,10 @@ class JwtServiceTest {
 
         assertEquals("dragos@example.com", decodedToken.getSubject());
         assertEquals("CUSTOMER", decodedToken.getClaimAsString("role"));
-        assertEquals("food-delivery-api", decodedToken.getIssuer().toString());
+        assertEquals(
+                "https://food-delivery-api.local",
+                decodedToken.getIssuer().toString()
+        );
         assertNotNull(decodedToken.getIssuedAt());
         assertNotNull(decodedToken.getExpiresAt());
         assertTrue(decodedToken.getExpiresAt().isAfter(decodedToken.getIssuedAt()));
