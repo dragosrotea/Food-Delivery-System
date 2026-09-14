@@ -1,5 +1,9 @@
 package com.dragosrotea.fooddelivery.restaurant.api;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 import com.dragosrotea.fooddelivery.restaurant.MenuItem;
 import com.dragosrotea.fooddelivery.restaurant.MenuItemService;
 import jakarta.validation.Valid;
@@ -14,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+@Tag(name = "Menu Items")
 @RestController
 @RequestMapping("/api/restaurants/{restaurantId}/menu-items")
 public class MenuItemController {
@@ -24,6 +29,7 @@ public class MenuItemController {
         this.menuItemService = menuItemService;
     }
 
+    @Operation(summary = "Get a restaurant's available menu")
     @GetMapping
     public List<MenuItemResponse> getAvailableMenu(@PathVariable Long restaurantId) {
         return menuItemService.getAvailableMenu(restaurantId)
@@ -32,6 +38,8 @@ public class MenuItemController {
                 .toList();
     }
 
+    @Operation(summary = "Add a menu item")
+    @SecurityRequirement(name = "bearerAuth")
     @PostMapping
     public ResponseEntity<MenuItemResponse> addMenuItem(
             @PathVariable Long restaurantId,

@@ -1,5 +1,9 @@
 package com.dragosrotea.fooddelivery.restaurant.api;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+
 import com.dragosrotea.fooddelivery.restaurant.Restaurant;
 import com.dragosrotea.fooddelivery.restaurant.RestaurantService;
 import jakarta.validation.Valid;
@@ -15,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+@Tag(name = "Restaurants")
 @RestController
 @RequestMapping("/api/restaurants")
 public class RestaurantController {
@@ -25,6 +30,7 @@ public class RestaurantController {
         this.restaurantService = restaurantService;
     }
 
+    @Operation(summary = "List restaurants")
     @GetMapping
     public List<RestaurantResponse> getRestaurants() {
         return restaurantService.getAllRestaurants()
@@ -33,11 +39,14 @@ public class RestaurantController {
                 .toList();
     }
 
+    @Operation(summary = "Get a restaurant")
     @GetMapping("/{restaurantId}")
     public RestaurantResponse getRestaurant(@PathVariable Long restaurantId) {
         return RestaurantResponse.from(restaurantService.getRestaurant(restaurantId));
     }
 
+    @Operation(summary = "Create a restaurant")
+    @SecurityRequirement(name = "bearerAuth")
     @PostMapping
     public ResponseEntity<RestaurantResponse> createRestaurant(
             @Valid @RequestBody CreateRestaurantRequest request
@@ -53,6 +62,8 @@ public class RestaurantController {
                 .body(RestaurantResponse.from(restaurant));
     }
 
+    @Operation(summary = "Delete a restaurant")
+    @SecurityRequirement(name = "bearerAuth")
     @DeleteMapping("/{restaurantId}")
     public ResponseEntity<Void> deleteRestaurant(@PathVariable Long restaurantId) {
         restaurantService.deleteRestaurant(restaurantId);
