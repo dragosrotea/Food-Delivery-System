@@ -19,10 +19,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -137,12 +135,5 @@ class RestaurantControllerTest {
                         .value("A restaurant named 'Urban Pizza' already exists"));
     }
 
-    @Test
-    void deletesRestaurantWithoutResponseBody() throws Exception {
-        mockMvc.perform(delete("/api/restaurants/1"))
-                .andExpect(status().isNoContent())
-                .andExpect(content().string(""));
-
-        verify(restaurantService).deleteRestaurant(1L);
-    }
 }
+

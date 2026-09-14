@@ -11,7 +11,9 @@ import com.dragosrotea.fooddelivery.order.exception.OrderNotFoundException;
 import com.dragosrotea.fooddelivery.restaurant.exception.DuplicateMenuItemException;
 import com.dragosrotea.fooddelivery.restaurant.exception.DuplicateRestaurantException;
 import com.dragosrotea.fooddelivery.restaurant.exception.InvalidMenuItemPriceException;
+import com.dragosrotea.fooddelivery.restaurant.exception.MenuItemNotFoundInRestaurantException;
 import com.dragosrotea.fooddelivery.restaurant.exception.RestaurantNotFoundException;
+import com.dragosrotea.fooddelivery.restaurant.exception.RestaurantUnavailableException;
 import com.dragosrotea.fooddelivery.user.exception.EmailAlreadyRegisteredException;
 import com.dragosrotea.fooddelivery.user.exception.InvalidCredentialsException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -30,7 +32,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({
             RestaurantNotFoundException.class,
             OrderNotFoundException.class,
-            MenuItemNotFoundException.class
+            MenuItemNotFoundException.class,
+            MenuItemNotFoundInRestaurantException.class
     })
     public ResponseEntity<ApiError> handleNotFound(RuntimeException exception, HttpServletRequest request) {
         return buildError(HttpStatus.NOT_FOUND, exception.getMessage(), request, Map.of());
@@ -42,7 +45,8 @@ public class GlobalExceptionHandler {
             EmailAlreadyRegisteredException.class,
             InvalidOrderStatusTransitionException.class,
             MenuItemUnavailableException.class,
-            MenuItemRestaurantMismatchException.class
+            MenuItemRestaurantMismatchException.class,
+            RestaurantUnavailableException.class
     })
     public ResponseEntity<ApiError> handleConflict(RuntimeException exception, HttpServletRequest request) {
         return buildError(HttpStatus.CONFLICT, exception.getMessage(), request, Map.of());

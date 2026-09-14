@@ -13,6 +13,7 @@ import com.dragosrotea.fooddelivery.restaurant.MenuItemRepository;
 import com.dragosrotea.fooddelivery.restaurant.Restaurant;
 import com.dragosrotea.fooddelivery.restaurant.RestaurantRepository;
 import com.dragosrotea.fooddelivery.restaurant.exception.RestaurantNotFoundException;
+import com.dragosrotea.fooddelivery.restaurant.exception.RestaurantUnavailableException;
 import com.dragosrotea.fooddelivery.user.UserAccount;
 import com.dragosrotea.fooddelivery.user.UserRepository;
 import com.dragosrotea.fooddelivery.user.UserRole;
@@ -69,6 +70,9 @@ public class OrderService {
         UserAccount customer = findUser(customerEmail);
         Restaurant restaurant = restaurantRepository.findById(restaurantId)
                 .orElseThrow(() -> new RestaurantNotFoundException(restaurantId));
+        if (!restaurant.isActive()) {
+            throw new RestaurantUnavailableException(restaurantId);
+        }
         FoodOrder order = new FoodOrder(customer, restaurant, deliveryStreet.trim(), deliveryCity.trim());
 
         for (OrderLineCommand line : lines) {

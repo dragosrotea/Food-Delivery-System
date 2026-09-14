@@ -9,10 +9,11 @@ import com.dragosrotea.fooddelivery.restaurant.RestaurantService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -62,11 +63,28 @@ public class RestaurantController {
                 .body(RestaurantResponse.from(restaurant));
     }
 
-    @Operation(summary = "Delete a restaurant")
+    @Operation(summary = "Update restaurant details")
     @SecurityRequirement(name = "bearerAuth")
-    @DeleteMapping("/{restaurantId}")
-    public ResponseEntity<Void> deleteRestaurant(@PathVariable Long restaurantId) {
-        restaurantService.deleteRestaurant(restaurantId);
-        return ResponseEntity.noContent().build();
+    @PutMapping("/{restaurantId}")
+    public RestaurantResponse updateRestaurant(
+            @PathVariable Long restaurantId,
+            @Valid @RequestBody UpdateRestaurantRequest request
+    ) {
+        return RestaurantResponse.from(restaurantService.updateRestaurant(
+                restaurantId, request.name(), request.street(), request.city()
+        ));
+    }
+
+    @Operation(summary = "Activate or deactivate a restaurant")
+    @SecurityRequirement(name = "bearerAuth")
+    @PatchMapping("/{restaurantId}/availability")
+    public RestaurantResponse changeAvailability(
+            @PathVariable Long restaurantId,
+            @Valid @RequestBody UpdateRestaurantAvailabilityRequest request
+    ) {
+        return RestaurantResponse.from(
+                restaurantService.changeAvailability(restaurantId, request.active())
+        );
     }
 }
+

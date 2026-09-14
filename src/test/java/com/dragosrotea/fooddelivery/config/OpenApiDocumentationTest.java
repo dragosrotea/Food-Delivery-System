@@ -24,6 +24,9 @@ class OpenApiDocumentationTest {
                 .andExpect(jsonPath("$.info.title").value("Food Delivery API"))
                 .andExpect(jsonPath("$.info.version").value("1.0.0"))
                 .andExpect(jsonPath("$.components.securitySchemes.bearerAuth").exists())
-                .andExpect(jsonPath("$.paths['/api/orders']").exists());
+                .andExpect(jsonPath("$.paths['/api/orders']").exists())
+                .andExpect(jsonPath("$.paths['/api/restaurants/{restaurantId}/availability']").exists())
+                .andExpect(jsonPath("$.paths['/api/restaurants/{restaurantId}/menu-items/{menuItemId}']").exists())
+                .andExpect(jsonPath("$.paths['/api/restaurants/{restaurantId}/menu-items/{menuItemId}/availability']").exists());
     }
 }
