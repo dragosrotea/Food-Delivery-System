@@ -13,6 +13,7 @@ import com.dragosrotea.fooddelivery.restaurant.exception.DuplicateRestaurantExce
 import com.dragosrotea.fooddelivery.restaurant.exception.InvalidMenuItemPriceException;
 import com.dragosrotea.fooddelivery.restaurant.exception.MenuItemNotFoundInRestaurantException;
 import com.dragosrotea.fooddelivery.restaurant.exception.RestaurantNotFoundException;
+import com.dragosrotea.fooddelivery.restaurant.exception.RestaurantUnavailableException;
 import com.dragosrotea.fooddelivery.user.exception.EmailAlreadyRegisteredException;
 import com.dragosrotea.fooddelivery.user.exception.InvalidCredentialsException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -44,7 +45,8 @@ public class GlobalExceptionHandler {
             EmailAlreadyRegisteredException.class,
             InvalidOrderStatusTransitionException.class,
             MenuItemUnavailableException.class,
-            MenuItemRestaurantMismatchException.class
+            MenuItemRestaurantMismatchException.class,
+            RestaurantUnavailableException.class
     })
     public ResponseEntity<ApiError> handleConflict(RuntimeException exception, HttpServletRequest request) {
         return buildError(HttpStatus.CONFLICT, exception.getMessage(), request, Map.of());
