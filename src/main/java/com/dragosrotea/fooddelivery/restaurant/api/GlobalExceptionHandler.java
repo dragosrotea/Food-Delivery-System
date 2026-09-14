@@ -1,5 +1,13 @@
 package com.dragosrotea.fooddelivery.restaurant.api;
 
+import com.dragosrotea.fooddelivery.order.exception.EmptyOrderException;
+import com.dragosrotea.fooddelivery.order.exception.InvalidOrderQuantityException;
+import com.dragosrotea.fooddelivery.order.exception.InvalidOrderStatusTransitionException;
+import com.dragosrotea.fooddelivery.order.exception.MenuItemNotFoundException;
+import com.dragosrotea.fooddelivery.order.exception.MenuItemRestaurantMismatchException;
+import com.dragosrotea.fooddelivery.order.exception.MenuItemUnavailableException;
+import com.dragosrotea.fooddelivery.order.exception.OrderAccessDeniedException;
+import com.dragosrotea.fooddelivery.order.exception.OrderNotFoundException;
 import com.dragosrotea.fooddelivery.restaurant.exception.DuplicateMenuItemException;
 import com.dragosrotea.fooddelivery.restaurant.exception.DuplicateRestaurantException;
 import com.dragosrotea.fooddelivery.restaurant.exception.InvalidMenuItemPriceException;
@@ -19,38 +27,45 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(RestaurantNotFoundException.class)
-    public ResponseEntity<ApiError> handleRestaurantNotFound(
-            RestaurantNotFoundException exception,
-            HttpServletRequest request
-    ) {
+    @ExceptionHandler({
+            RestaurantNotFoundException.class,
+            OrderNotFoundException.class,
+            MenuItemNotFoundException.class
+    })
+    public ResponseEntity<ApiError> handleNotFound(RuntimeException exception, HttpServletRequest request) {
         return buildError(HttpStatus.NOT_FOUND, exception.getMessage(), request, Map.of());
     }
 
     @ExceptionHandler({
             DuplicateRestaurantException.class,
             DuplicateMenuItemException.class,
-            EmailAlreadyRegisteredException.class
+            EmailAlreadyRegisteredException.class,
+            InvalidOrderStatusTransitionException.class,
+            MenuItemUnavailableException.class,
+            MenuItemRestaurantMismatchException.class
     })
-    public ResponseEntity<ApiError> handleConflict(
-            RuntimeException exception,
+    public ResponseEntity<ApiError> handleConflict(RuntimeException exception, HttpServletRequest request) {
+        return buildError(HttpStatus.CONFLICT, exception.getMessage(), request, Map.of());
+    }
+
+    @ExceptionHandler(OrderAccessDeniedException.class)
+    public ResponseEntity<ApiError> handleForbidden(
+            OrderAccessDeniedException exception,
             HttpServletRequest request
     ) {
-        return buildError(HttpStatus.CONFLICT, exception.getMessage(), request, Map.of());
+        return buildError(HttpStatus.FORBIDDEN, exception.getMessage(), request, Map.of());
     }
 
     @ExceptionHandler({
             InvalidMenuItemPriceException.class,
+            EmptyOrderException.class,
+            InvalidOrderQuantityException.class,
             InvalidCredentialsException.class
     })
-    public ResponseEntity<ApiError> handleBadRequest(
-            RuntimeException exception,
-            HttpServletRequest request
-    ) {
+    public ResponseEntity<ApiError> handleBadRequest(RuntimeException exception, HttpServletRequest request) {
         HttpStatus status = exception instanceof InvalidCredentialsException
                 ? HttpStatus.UNAUTHORIZED
                 : HttpStatus.BAD_REQUEST;
-
         return buildError(status, exception.getMessage(), request, Map.of());
     }
 
@@ -85,7 +100,6 @@ public class GlobalExceptionHandler {
                 request.getRequestURI(),
                 fieldErrors
         );
-
         return ResponseEntity.status(status).body(error);
     }
 }
