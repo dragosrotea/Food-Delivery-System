@@ -1,15 +1,13 @@
 package com.dragosrotea.fooddelivery.order;
 
-import com.dragosrotea.fooddelivery.order.exception.InvalidOrderQuantityException;
-import com.dragosrotea.fooddelivery.order.exception.InvalidOrderStatusTransitionException;
-import com.dragosrotea.fooddelivery.order.exception.MenuItemRestaurantMismatchException;
-import com.dragosrotea.fooddelivery.order.exception.OrderAccessDeniedException;
+import com.dragosrotea.fooddelivery.order.exception.*;
 import com.dragosrotea.fooddelivery.restaurant.MenuItem;
 import com.dragosrotea.fooddelivery.restaurant.MenuItemRepository;
 import com.dragosrotea.fooddelivery.restaurant.Restaurant;
 import com.dragosrotea.fooddelivery.restaurant.RestaurantRepository;
 import com.dragosrotea.fooddelivery.user.UserAccount;
 import com.dragosrotea.fooddelivery.user.UserRepository;
+import com.dragosrotea.fooddelivery.user.UserRole;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,11 +18,9 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class OrderServiceTest {
@@ -51,9 +47,12 @@ class OrderServiceTest {
 
     @Test
     void placesOrderWithServerCalculatedTotalAndPriceSnapshot() {
-        when(userRepository.findByEmail("customer@example.com")).thenReturn(Optional.of(customer));
-        when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
-        when(menuItemRepository.findById(10L)).thenReturn(Optional.of(menuItem));
+        when(userRepository.findByEmail("customer@example.com"))
+                .thenReturn(Optional.of(customer));
+        when(restaurantRepository.findById(1L))
+                .thenReturn(Optional.of(restaurant));
+        when(menuItemRepository.findById(10L))
+                .thenReturn(Optional.of(menuItem));
         when(restaurant.getId()).thenReturn(1L);
         when(restaurant.isActive()).thenReturn(true);
         when(menuItem.getRestaurant()).thenReturn(restaurant);
@@ -74,60 +73,74 @@ class OrderServiceTest {
         assertEquals(OrderStatus.PLACED, result.getStatus());
         assertEquals(new BigDecimal("65.00"), result.getTotalPrice());
         assertEquals("Pizza", result.getItems().get(0).getItemName());
-        assertEquals(new BigDecimal("32.50"), result.getItems().get(0).getUnitPrice());
+        assertEquals(
+                new BigDecimal("32.50"),
+                result.getItems().get(0).getUnitPrice()
+        );
         verify(orderRepository).save(result);
     }
 
     @Test
     void rejectsQuantityThatIsNotPositive() {
-        when(userRepository.findByEmail("customer@example.com")).thenReturn(Optional.of(customer));
-        when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
+        when(userRepository.findByEmail("customer@example.com"))
+                .thenReturn(Optional.of(customer));
+        when(restaurantRepository.findById(1L))
+                .thenReturn(Optional.of(restaurant));
         when(restaurant.isActive()).thenReturn(true);
 
-        assertThrows(InvalidOrderQuantityException.class, () -> orderService.placeOrder(
-                "customer@example.com",
-                1L,
-                "10 Main Street",
-                "Cluj-Napoca",
-                List.of(new OrderLineCommand(10L, 0))
-        ));
+        assertThrows(InvalidOrderQuantityException.class, () ->
+                orderService.placeOrder(
+                        "customer@example.com",
+                        1L,
+                        "10 Main Street",
+                        "Cluj-Napoca",
+                        List.of(new OrderLineCommand(10L, 0))
+                )
+        );
     }
 
     @Test
     void rejectsMenuItemFromAnotherRestaurant() {
-        Restaurant anotherRestaurant = org.mockito.Mockito.mock(Restaurant.class);
-        when(userRepository.findByEmail("customer@example.com")).thenReturn(Optional.of(customer));
-        when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
+        Restaurant anotherRestaurant = mock(Restaurant.class);
+        when(userRepository.findByEmail("customer@example.com"))
+                .thenReturn(Optional.of(customer));
+        when(restaurantRepository.findById(1L))
+                .thenReturn(Optional.of(restaurant));
         when(restaurant.isActive()).thenReturn(true);
-        when(menuItemRepository.findById(10L)).thenReturn(Optional.of(menuItem));
+        when(menuItemRepository.findById(10L))
+                .thenReturn(Optional.of(menuItem));
         when(menuItem.getRestaurant()).thenReturn(anotherRestaurant);
         when(anotherRestaurant.getId()).thenReturn(2L);
 
-        assertThrows(MenuItemRestaurantMismatchException.class, () -> orderService.placeOrder(
-                "customer@example.com",
-                1L,
-                "10 Main Street",
-                "Cluj-Napoca",
-                List.of(new OrderLineCommand(10L, 1))
-        ));
+        assertThrows(MenuItemRestaurantMismatchException.class, () ->
+                orderService.placeOrder(
+                        "customer@example.com",
+                        1L,
+                        "10 Main Street",
+                        "Cluj-Napoca",
+                        List.of(new OrderLineCommand(10L, 1))
+                )
+        );
     }
 
     @Test
     void preventsCustomerFromReadingAnotherCustomersOrder() {
-        UserAccount owner = org.mockito.Mockito.mock(UserAccount.class);
-        FoodOrder order = org.mockito.Mockito.mock(FoodOrder.class);
+        UserAccount owner = mock(UserAccount.class);
+        FoodOrder order = mock(FoodOrder.class);
         when(orderRepository.findById(5L)).thenReturn(Optional.of(order));
         when(order.getCustomer()).thenReturn(owner);
         when(owner.getEmail()).thenReturn("owner@example.com");
         when(order.getId()).thenReturn(5L);
 
-        assertThrows(OrderAccessDeniedException.class,
-                () -> orderService.getOrder("other@example.com", false, 5L));
+        assertThrows(
+                OrderAccessDeniedException.class,
+                () -> orderService.getOrder("other@example.com", false, 5L)
+        );
     }
 
     @Test
-    void allowsOnlyNextOrderStatus() {
-        FoodOrder order = org.mockito.Mockito.mock(FoodOrder.class);
+    void allowsAdminPreparationTransition() {
+        FoodOrder order = mock(FoodOrder.class);
         when(orderRepository.findById(5L)).thenReturn(Optional.of(order));
         when(order.getStatus()).thenReturn(OrderStatus.PLACED);
 
@@ -137,12 +150,106 @@ class OrderServiceTest {
     }
 
     @Test
-    void rejectsSkippedOrderStatus() {
-        FoodOrder order = org.mockito.Mockito.mock(FoodOrder.class);
+    void preventsAdminFromBypassingDriverAssignment() {
+        FoodOrder order = mock(FoodOrder.class);
         when(orderRepository.findById(5L)).thenReturn(Optional.of(order));
-        when(order.getStatus()).thenReturn(OrderStatus.PLACED);
+        when(order.getStatus()).thenReturn(OrderStatus.READY_FOR_PICKUP);
 
-        assertThrows(InvalidOrderStatusTransitionException.class,
-                () -> orderService.updateStatus(5L, OrderStatus.DELIVERED));
+        assertThrows(
+                InvalidOrderStatusTransitionException.class,
+                () -> orderService.updateStatus(
+                        5L, OrderStatus.OUT_FOR_DELIVERY
+                )
+        );
+    }
+
+    @Test
+    void listsOnlyUnassignedOrdersReadyForPickup() {
+        FoodOrder order = mock(FoodOrder.class);
+        when(orderRepository
+                .findByStatusAndDriverIsNullOrderByCreatedAtAsc(
+                        OrderStatus.READY_FOR_PICKUP
+                ))
+                .thenReturn(List.of(order));
+
+        List<FoodOrder> result = orderService.getAvailableDeliveries();
+
+        assertEquals(List.of(order), result);
+    }
+
+    @Test
+    void acceptsAvailableDeliveryForDriver() {
+        UserAccount driver = mockDriver(7L, "driver@example.com");
+        FoodOrder order = mock(FoodOrder.class);
+        when(userRepository.findByEmail("driver@example.com"))
+                .thenReturn(Optional.of(driver));
+        when(orderRepository.findById(5L)).thenReturn(Optional.of(order));
+        when(order.getStatus()).thenReturn(OrderStatus.READY_FOR_PICKUP);
+
+        FoodOrder result =
+                orderService.acceptDelivery("driver@example.com", 5L);
+
+        assertSame(order, result);
+        verify(order).assignDriver(driver);
+    }
+
+    @Test
+    void rejectsDeliveryAlreadyAssignedToAnotherDriver() {
+        UserAccount driver = mockDriver(7L, "driver@example.com");
+        UserAccount otherDriver = mock(UserAccount.class);
+        FoodOrder order = mock(FoodOrder.class);
+        when(userRepository.findByEmail("driver@example.com"))
+                .thenReturn(Optional.of(driver));
+        when(orderRepository.findById(5L)).thenReturn(Optional.of(order));
+        when(order.getStatus()).thenReturn(OrderStatus.READY_FOR_PICKUP);
+        when(order.getDriver()).thenReturn(otherDriver);
+
+        assertThrows(
+                DriverOrderUnavailableException.class,
+                () -> orderService.acceptDelivery("driver@example.com", 5L)
+        );
+
+        verify(order, never()).assignDriver(any());
+    }
+
+    @Test
+    void completesDeliveryAssignedToCurrentDriver() {
+        UserAccount driver = mockDriver(7L, "driver@example.com");
+        FoodOrder order = mock(FoodOrder.class);
+        when(orderRepository.findById(5L)).thenReturn(Optional.of(order));
+        when(userRepository.findByEmail("driver@example.com"))
+                .thenReturn(Optional.of(driver));
+        when(order.getDriver()).thenReturn(driver);
+        when(order.getStatus()).thenReturn(OrderStatus.OUT_FOR_DELIVERY);
+
+        orderService.completeDelivery("driver@example.com", 5L);
+
+        verify(order).changeStatus(OrderStatus.DELIVERED);
+    }
+
+    @Test
+    void preventsDifferentDriverFromCompletingDelivery() {
+        UserAccount driver = mockDriver(7L, "driver@example.com");
+        UserAccount assignedDriver = mock(UserAccount.class);
+        FoodOrder order = mock(FoodOrder.class);
+        when(orderRepository.findById(5L)).thenReturn(Optional.of(order));
+        when(userRepository.findByEmail("driver@example.com"))
+                .thenReturn(Optional.of(driver));
+        when(order.getDriver()).thenReturn(assignedDriver);
+        when(assignedDriver.getId()).thenReturn(8L);
+
+        assertThrows(
+                DriverOrderAccessDeniedException.class,
+                () -> orderService.completeDelivery("driver@example.com", 5L)
+        );
+
+        verify(order, never()).changeStatus(any());
+    }
+
+    private UserAccount mockDriver(Long id, String email) {
+        UserAccount driver = mock(UserAccount.class);
+        when(driver.getId()).thenReturn(id);
+        when(driver.getRole()).thenReturn(UserRole.DRIVER);
+        return driver;
     }
 }
