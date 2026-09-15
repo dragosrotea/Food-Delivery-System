@@ -1,22 +1,11 @@
 package com.dragosrotea.fooddelivery.restaurant.api;
 
-import com.dragosrotea.fooddelivery.order.exception.EmptyOrderException;
-import com.dragosrotea.fooddelivery.order.exception.InvalidOrderQuantityException;
-import com.dragosrotea.fooddelivery.order.exception.InvalidOrderStatusTransitionException;
-import com.dragosrotea.fooddelivery.order.exception.MenuItemNotFoundException;
-import com.dragosrotea.fooddelivery.order.exception.MenuItemRestaurantMismatchException;
-import com.dragosrotea.fooddelivery.order.exception.MenuItemUnavailableException;
-import com.dragosrotea.fooddelivery.order.exception.OrderAccessDeniedException;
-import com.dragosrotea.fooddelivery.order.exception.OrderNotFoundException;
-import com.dragosrotea.fooddelivery.restaurant.exception.DuplicateMenuItemException;
-import com.dragosrotea.fooddelivery.restaurant.exception.DuplicateRestaurantException;
-import com.dragosrotea.fooddelivery.restaurant.exception.InvalidMenuItemPriceException;
-import com.dragosrotea.fooddelivery.restaurant.exception.MenuItemNotFoundInRestaurantException;
-import com.dragosrotea.fooddelivery.restaurant.exception.RestaurantNotFoundException;
-import com.dragosrotea.fooddelivery.restaurant.exception.RestaurantUnavailableException;
+import com.dragosrotea.fooddelivery.order.exception.*;
+import com.dragosrotea.fooddelivery.restaurant.exception.*;
 import com.dragosrotea.fooddelivery.user.exception.EmailAlreadyRegisteredException;
 import com.dragosrotea.fooddelivery.user.exception.InvalidCredentialsException;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -35,8 +24,13 @@ public class GlobalExceptionHandler {
             MenuItemNotFoundException.class,
             MenuItemNotFoundInRestaurantException.class
     })
-    public ResponseEntity<ApiError> handleNotFound(RuntimeException exception, HttpServletRequest request) {
-        return buildError(HttpStatus.NOT_FOUND, exception.getMessage(), request, Map.of());
+    public ResponseEntity<ApiError> handleNotFound(
+            RuntimeException exception,
+            HttpServletRequest request
+    ) {
+        return buildError(
+                HttpStatus.NOT_FOUND, exception.getMessage(), request, Map.of()
+        );
     }
 
     @ExceptionHandler({
@@ -46,18 +40,43 @@ public class GlobalExceptionHandler {
             InvalidOrderStatusTransitionException.class,
             MenuItemUnavailableException.class,
             MenuItemRestaurantMismatchException.class,
-            RestaurantUnavailableException.class
+            RestaurantUnavailableException.class,
+            DriverOrderUnavailableException.class
     })
-    public ResponseEntity<ApiError> handleConflict(RuntimeException exception, HttpServletRequest request) {
-        return buildError(HttpStatus.CONFLICT, exception.getMessage(), request, Map.of());
-    }
-
-    @ExceptionHandler(OrderAccessDeniedException.class)
-    public ResponseEntity<ApiError> handleForbidden(
-            OrderAccessDeniedException exception,
+    public ResponseEntity<ApiError> handleConflict(
+            RuntimeException exception,
             HttpServletRequest request
     ) {
-        return buildError(HttpStatus.FORBIDDEN, exception.getMessage(), request, Map.of());
+        return buildError(
+                HttpStatus.CONFLICT, exception.getMessage(), request, Map.of()
+        );
+    }
+
+    @ExceptionHandler(OptimisticLockingFailureException.class)
+    public ResponseEntity<ApiError> handleConcurrentUpdate(
+            OptimisticLockingFailureException exception,
+            HttpServletRequest request
+    ) {
+        return buildError(
+                HttpStatus.CONFLICT,
+                "The order was changed by another request. Refresh and try again",
+                request,
+                Map.of()
+        );
+    }
+
+    @ExceptionHandler({
+            OrderAccessDeniedException.class,
+            DriverOrderAccessDeniedException.class,
+            DriverAccountRequiredException.class
+    })
+    public ResponseEntity<ApiError> handleForbidden(
+            RuntimeException exception,
+            HttpServletRequest request
+    ) {
+        return buildError(
+                HttpStatus.FORBIDDEN, exception.getMessage(), request, Map.of()
+        );
     }
 
     @ExceptionHandler({
@@ -66,7 +85,10 @@ public class GlobalExceptionHandler {
             InvalidOrderQuantityException.class,
             InvalidCredentialsException.class
     })
-    public ResponseEntity<ApiError> handleBadRequest(RuntimeException exception, HttpServletRequest request) {
+    public ResponseEntity<ApiError> handleBadRequest(
+            RuntimeException exception,
+            HttpServletRequest request
+    ) {
         HttpStatus status = exception instanceof InvalidCredentialsException
                 ? HttpStatus.UNAUTHORIZED
                 : HttpStatus.BAD_REQUEST;
