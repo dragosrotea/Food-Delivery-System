@@ -13,13 +13,20 @@ The Swing source is still kept temporarily while its features are moved to the b
 - Place and cancel orders
 - View personal order history
 
+### Driver
+
+- Log in with an account created by an administrator
+- View orders ready for pickup
+- Accept an available delivery
+- View assigned deliveries
+- Mark an assigned delivery as completed
+
 ### Administrator
 
+- Create driver accounts
 - Add and update restaurants and menu items
 - Activate or deactivate restaurants and menu items
-- View all orders and advance their status
-
-Driver functionality is planned as the next backend feature.
+- View all orders and advance preparation statuses
 
 ## Technologies used
 
@@ -116,6 +123,6 @@ Interactive API documentation is available at `http://localhost:8080/swagger-ui.
 
 ## Future improvements
 
-- Add the driver order workflow
 - Build a React web interface
 - Add Docker and PostgreSQL integration tests
+- Add real-time order status updates

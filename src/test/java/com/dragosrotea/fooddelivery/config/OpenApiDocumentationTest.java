@@ -28,6 +28,11 @@ class OpenApiDocumentationTest {
                 .andExpect(jsonPath("$.paths['/api/restaurants/{restaurantId}/availability']").exists())
                 .andExpect(jsonPath("$.paths['/api/restaurants/{restaurantId}/menu-items/{menuItemId}']").exists())
                 .andExpect(jsonPath("$.paths['/api/restaurants/{restaurantId}/menu-items/{menuItemId}/availability']").exists())
-                .andExpect(jsonPath("$.paths['/api/admin/restaurants/{restaurantId}/menu-items']").exists());
+                .andExpect(jsonPath("$.paths['/api/admin/restaurants/{restaurantId}/menu-items']").exists())
+                .andExpect(jsonPath("$.paths['/api/admin/drivers']").exists())
+                .andExpect(jsonPath("$.paths['/api/driver/orders']").exists())
+                .andExpect(jsonPath("$.paths['/api/driver/orders/available']").exists())
+                .andExpect(jsonPath("$.paths['/api/driver/orders/{orderId}/accept']").exists())
+                .andExpect(jsonPath("$.paths['/api/driver/orders/{orderId}/complete']").exists());
     }
 }
