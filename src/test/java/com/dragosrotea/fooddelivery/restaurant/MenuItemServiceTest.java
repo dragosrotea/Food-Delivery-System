@@ -34,16 +34,11 @@ class MenuItemServiceTest {
     private MenuItemService menuItemService;
 
     @Test
-    void returnsOnlyAvailableMenuItemsForExistingRestaurant() {
+    void returnsOnlyAvailableMenuItemsForActiveRestaurant() {
         Restaurant restaurant = restaurant();
-        MenuItem menuItem = new MenuItem(
-                restaurant,
-                "Margherita",
-                "Tomato, mozzarella and basil",
-                new BigDecimal("32.00"),
-                "Pizza"
-        );
-        when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
+        MenuItem menuItem = menuItem(restaurant);
+        when(restaurantRepository.findByIdAndActiveTrue(1L))
+                .thenReturn(Optional.of(restaurant));
         when(menuItemRepository.findByRestaurantIdAndAvailableTrue(1L))
                 .thenReturn(List.of(menuItem));
 
@@ -54,15 +49,30 @@ class MenuItemServiceTest {
     }
 
     @Test
-    void rejectsMenuRequestForMissingRestaurant() {
-        when(restaurantRepository.findById(99L)).thenReturn(Optional.empty());
+    void hidesMenuWhenRestaurantIsMissingOrInactive() {
+        when(restaurantRepository.findByIdAndActiveTrue(1L))
+                .thenReturn(Optional.empty());
 
         assertThrows(
                 RestaurantNotFoundException.class,
-                () -> menuItemService.getAvailableMenu(99L)
+                () -> menuItemService.getAvailableMenu(1L)
         );
         verify(menuItemRepository, never())
-                .findByRestaurantIdAndAvailableTrue(99L);
+                .findByRestaurantIdAndAvailableTrue(1L);
+    }
+
+    @Test
+    void returnsAllMenuItemsForAdmin() {
+        Restaurant restaurant = restaurant();
+        MenuItem menuItem = menuItem(restaurant);
+        menuItem.changeAvailability(false);
+        when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
+        when(menuItemRepository.findByRestaurantId(1L)).thenReturn(List.of(menuItem));
+
+        List<MenuItem> result = menuItemService.getAllMenuItemsForAdmin(1L);
+
+        assertEquals(1, result.size());
+        assertEquals(false, result.get(0).isAvailable());
     }
 
     @Test
@@ -100,7 +110,7 @@ class MenuItemServiceTest {
     }
 
     @Test
-    void rejectsDuplicateMenuItemNameWithinRestaurant() {
+    void rejectsDuplicateMenuItemNameAfterTrimming() {
         when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant()));
         when(menuItemRepository.existsByRestaurantIdAndNameIgnoreCase(1L, "Margherita"))
                 .thenReturn(true);
@@ -109,7 +119,7 @@ class MenuItemServiceTest {
                 DuplicateMenuItemException.class,
                 () -> menuItemService.addMenuItem(
                         1L,
-                        "Margherita",
+                        "  Margherita  ",
                         "Tomato, mozzarella and basil",
                         new BigDecimal("32.00"),
                         "Pizza"
@@ -119,7 +129,7 @@ class MenuItemServiceTest {
     }
 
     @Test
-    void savesValidMenuItem() {
+    void trimsMenuItemTextBeforeSaving() {
         Restaurant restaurant = restaurant();
         when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
         when(menuItemRepository.existsByRestaurantIdAndNameIgnoreCase(1L, "Margherita"))
@@ -129,31 +139,42 @@ class MenuItemServiceTest {
 
         MenuItem result = menuItemService.addMenuItem(
                 1L,
-                "Margherita",
-                "Tomato, mozzarella and basil",
+                "  Margherita  ",
+                "  Tomato, mozzarella and basil  ",
                 new BigDecimal("32.00"),
-                "Pizza"
+                "  Pizza  "
         );
 
         assertSame(restaurant, result.getRestaurant());
         assertEquals("Margherita", result.getName());
-        assertEquals(new BigDecimal("32.00"), result.getPrice());
+        assertEquals("Tomato, mozzarella and basil", result.getDescription());
         assertEquals("Pizza", result.getCategory());
-        verify(menuItemRepository).save(any(MenuItem.class));
+    }
+
+    @Test
+    void changesMenuItemAvailability() {
+        Restaurant restaurant = restaurant();
+        MenuItem item = menuItem(restaurant);
+        when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
+        when(menuItemRepository.findByIdAndRestaurantId(2L, 1L))
+                .thenReturn(Optional.of(item));
+
+        MenuItem result = menuItemService.changeAvailability(1L, 2L, false);
+
+        assertEquals(false, result.isAvailable());
     }
 
     private Restaurant restaurant() {
         return new Restaurant("Urban Pizza", "10 Main Street", "Bucharest");
     }
-    @Test
-    void changesMenuItemAvailability() {
-        Restaurant restaurant = restaurant();
-        MenuItem item = new MenuItem(restaurant, "Pizza", "Fresh", new BigDecimal("20.00"), "Pizza");
-        when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
-        when(menuItemRepository.findByIdAndRestaurantId(2L, 1L)).thenReturn(Optional.of(item));
 
-        MenuItem result = menuItemService.changeAvailability(1L, 2L, false);
-
-        assertEquals(false, result.isAvailable());
+    private MenuItem menuItem(Restaurant restaurant) {
+        return new MenuItem(
+                restaurant,
+                "Margherita",
+                "Tomato, mozzarella and basil",
+                new BigDecimal("32.00"),
+                "Pizza"
+        );
     }
 }

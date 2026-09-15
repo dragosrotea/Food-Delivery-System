@@ -1,6 +1,7 @@
 package com.dragosrotea.fooddelivery.security;
 
 import com.dragosrotea.fooddelivery.order.OrderService;
+import com.dragosrotea.fooddelivery.restaurant.MenuItemService;
 import com.dragosrotea.fooddelivery.restaurant.Restaurant;
 import com.dragosrotea.fooddelivery.restaurant.RestaurantService;
 import org.junit.jupiter.api.Test;
@@ -33,6 +34,9 @@ class SecurityAuthorizationTest {
 
     @MockitoBean
     private RestaurantService restaurantService;
+
+    @MockitoBean
+    private MenuItemService menuItemService;
 
     @MockitoBean
     private OrderService orderService;
@@ -81,6 +85,34 @@ class SecurityAuthorizationTest {
                         .content(validRestaurantJson()))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.name").value("Urban Pizza"));
+    }
+
+    @Test
+    void protectsAdminMenuListing() throws Exception {
+        mockMvc.perform(get("/api/admin/restaurants/1/menu-items"))
+                .andExpect(status().isUnauthorized());
+
+        verifyNoInteractions(menuItemService);
+    }
+
+    @Test
+    void forbidsCustomerFromAdminMenuListing() throws Exception {
+        mockMvc.perform(get("/api/admin/restaurants/1/menu-items")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_CUSTOMER"))))
+                .andExpect(status().isForbidden());
+
+        verifyNoInteractions(menuItemService);
+    }
+
+    @Test
+    void allowsAdminToListEveryMenuItem() throws Exception {
+        when(menuItemService.getAllMenuItemsForAdmin(1L)).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/admin/restaurants/1/menu-items")
+                        .with(jwt().authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))))
+                .andExpect(status().isOk());
+
+        verify(menuItemService).getAllMenuItemsForAdmin(1L);
     }
 
     @Test

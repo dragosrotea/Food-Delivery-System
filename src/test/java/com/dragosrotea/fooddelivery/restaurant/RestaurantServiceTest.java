@@ -4,6 +4,7 @@ import com.dragosrotea.fooddelivery.restaurant.exception.DuplicateRestaurantExce
 import com.dragosrotea.fooddelivery.restaurant.exception.RestaurantNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -37,6 +38,28 @@ class RestaurantServiceTest {
     }
 
     @Test
+    void returnsActiveRestaurantForPublicAccess() {
+        Restaurant restaurant = new Restaurant("Urban Pizza", "10 Main Street", "Bucharest");
+        when(restaurantRepository.findByIdAndActiveTrue(1L))
+                .thenReturn(Optional.of(restaurant));
+
+        Restaurant result = restaurantService.getActiveRestaurant(1L);
+
+        assertEquals("Urban Pizza", result.getName());
+    }
+
+    @Test
+    void hidesInactiveRestaurantFromPublicAccess() {
+        when(restaurantRepository.findByIdAndActiveTrue(1L))
+                .thenReturn(Optional.empty());
+
+        assertThrows(
+                RestaurantNotFoundException.class,
+                () -> restaurantService.getActiveRestaurant(1L)
+        );
+    }
+
+    @Test
     void throwsExceptionWhenRestaurantDoesNotExist() {
         when(restaurantRepository.findById(99L)).thenReturn(Optional.empty());
 
@@ -47,13 +70,13 @@ class RestaurantServiceTest {
     }
 
     @Test
-    void rejectsDuplicateRestaurantName() {
+    void rejectsDuplicateRestaurantNameAfterTrimming() {
         when(restaurantRepository.existsByNameIgnoreCase("Urban Pizza")).thenReturn(true);
 
         assertThrows(
                 DuplicateRestaurantException.class,
                 () -> restaurantService.createRestaurant(
-                        "Urban Pizza",
+                        "  Urban Pizza  ",
                         "10 Main Street",
                         "Bucharest"
                 )
@@ -62,21 +85,24 @@ class RestaurantServiceTest {
     }
 
     @Test
-    void savesNewRestaurant() {
+    void trimsNewRestaurantDetailsBeforeSaving() {
         when(restaurantRepository.existsByNameIgnoreCase("Urban Pizza")).thenReturn(false);
         when(restaurantRepository.save(any(Restaurant.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
 
         Restaurant result = restaurantService.createRestaurant(
-                "Urban Pizza",
-                "10 Main Street",
-                "Bucharest"
+                "  Urban Pizza  ",
+                "  10 Main Street  ",
+                "  Bucharest  "
         );
 
         assertEquals("Urban Pizza", result.getName());
         assertEquals("10 Main Street", result.getStreet());
         assertEquals("Bucharest", result.getCity());
-        verify(restaurantRepository).save(any(Restaurant.class));
+
+        ArgumentCaptor<Restaurant> captor = ArgumentCaptor.forClass(Restaurant.class);
+        verify(restaurantRepository).save(captor.capture());
+        assertEquals("Urban Pizza", captor.getValue().getName());
     }
 
     @Test
@@ -91,15 +117,21 @@ class RestaurantServiceTest {
     }
 
     @Test
-    void updatesRestaurantDetails() {
+    void trimsUpdatedRestaurantDetails() {
         Restaurant restaurant = new Restaurant("Urban Pizza", "10 Main Street", "Bucharest");
         when(restaurantRepository.findById(1L)).thenReturn(Optional.of(restaurant));
-        when(restaurantRepository.existsByNameIgnoreCaseAndIdNot("New Name", 1L)).thenReturn(false);
+        when(restaurantRepository.existsByNameIgnoreCaseAndIdNot("New Name", 1L))
+                .thenReturn(false);
 
-        Restaurant result = restaurantService.updateRestaurant(1L, "New Name", "20 Main Street", "Cluj");
+        Restaurant result = restaurantService.updateRestaurant(
+                1L,
+                "  New Name  ",
+                "  20 Main Street  ",
+                "  Cluj  "
+        );
 
         assertEquals("New Name", result.getName());
         assertEquals("20 Main Street", result.getStreet());
+        assertEquals("Cluj", result.getCity());
     }
 }
-

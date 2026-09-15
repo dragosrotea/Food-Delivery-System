@@ -52,8 +52,20 @@ class RestaurantControllerTest {
     }
 
     @Test
-    void returnsNotFoundErrorForMissingRestaurant() throws Exception {
-        when(restaurantService.getRestaurant(99L))
+    void returnsActiveRestaurantById() throws Exception {
+        Restaurant restaurant = new Restaurant("Urban Pizza", "10 Main Street", "Bucharest");
+        when(restaurantService.getActiveRestaurant(1L)).thenReturn(restaurant);
+
+        mockMvc.perform(get("/api/restaurants/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Urban Pizza"));
+
+        verify(restaurantService).getActiveRestaurant(1L);
+    }
+
+    @Test
+    void returnsNotFoundWhenRestaurantIsMissingOrInactive() throws Exception {
+        when(restaurantService.getActiveRestaurant(99L))
                 .thenThrow(new RestaurantNotFoundException(99L));
 
         mockMvc.perform(get("/api/restaurants/99"))
@@ -134,6 +146,4 @@ class RestaurantControllerTest {
                 .andExpect(jsonPath("$.message")
                         .value("A restaurant named 'Urban Pizza' already exists"));
     }
-
 }
-
