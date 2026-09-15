@@ -4,11 +4,13 @@ import com.dragosrotea.fooddelivery.restaurant.exception.DuplicateRestaurantExce
 import com.dragosrotea.fooddelivery.restaurant.exception.RestaurantNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
 import java.util.List;
 
 @Service
 @Transactional
 public class RestaurantService {
+
     private final RestaurantRepository restaurantRepository;
 
     public RestaurantService(RestaurantRepository restaurantRepository) {
@@ -26,24 +28,42 @@ public class RestaurantService {
     }
 
     @Transactional(readOnly = true)
+    public Restaurant getActiveRestaurant(Long id) {
+        return restaurantRepository.findByIdAndActiveTrue(id)
+                .orElseThrow(() -> new RestaurantNotFoundException(id));
+    }
+
+    @Transactional(readOnly = true)
     public Restaurant getRestaurant(Long id) {
         return restaurantRepository.findById(id)
                 .orElseThrow(() -> new RestaurantNotFoundException(id));
     }
 
     public Restaurant createRestaurant(String name, String street, String city) {
-        if (restaurantRepository.existsByNameIgnoreCase(name)) {
-            throw new DuplicateRestaurantException(name);
+        String normalizedName = name.trim();
+        String normalizedStreet = street.trim();
+        String normalizedCity = city.trim();
+
+        if (restaurantRepository.existsByNameIgnoreCase(normalizedName)) {
+            throw new DuplicateRestaurantException(normalizedName);
         }
-        return restaurantRepository.save(new Restaurant(name, street, city));
+
+        return restaurantRepository.save(
+                new Restaurant(normalizedName, normalizedStreet, normalizedCity)
+        );
     }
 
     public Restaurant updateRestaurant(Long id, String name, String street, String city) {
         Restaurant restaurant = getRestaurant(id);
-        if (restaurantRepository.existsByNameIgnoreCaseAndIdNot(name, id)) {
-            throw new DuplicateRestaurantException(name);
+        String normalizedName = name.trim();
+        String normalizedStreet = street.trim();
+        String normalizedCity = city.trim();
+
+        if (restaurantRepository.existsByNameIgnoreCaseAndIdNot(normalizedName, id)) {
+            throw new DuplicateRestaurantException(normalizedName);
         }
-        restaurant.updateDetails(name, street, city);
+
+        restaurant.updateDetails(normalizedName, normalizedStreet, normalizedCity);
         return restaurant;
     }
 

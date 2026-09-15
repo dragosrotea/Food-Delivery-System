@@ -1,11 +1,10 @@
 package com.dragosrotea.fooddelivery.restaurant.api;
 
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-
 import com.dragosrotea.fooddelivery.restaurant.Restaurant;
 import com.dragosrotea.fooddelivery.restaurant.RestaurantService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,19 +30,20 @@ public class RestaurantController {
         this.restaurantService = restaurantService;
     }
 
-    @Operation(summary = "List restaurants")
+    @Operation(summary = "List active restaurants")
     @GetMapping
     public List<RestaurantResponse> getRestaurants() {
-        return restaurantService.getAllRestaurants()
-                .stream()
+        return restaurantService.getAllRestaurants().stream()
                 .map(RestaurantResponse::from)
                 .toList();
     }
 
-    @Operation(summary = "Get a restaurant")
+    @Operation(summary = "Get an active restaurant")
     @GetMapping("/{restaurantId}")
     public RestaurantResponse getRestaurant(@PathVariable Long restaurantId) {
-        return RestaurantResponse.from(restaurantService.getRestaurant(restaurantId));
+        return RestaurantResponse.from(
+                restaurantService.getActiveRestaurant(restaurantId)
+        );
     }
 
     @Operation(summary = "Create a restaurant")
@@ -58,8 +58,7 @@ public class RestaurantController {
                 request.city()
         );
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
+        return ResponseEntity.status(HttpStatus.CREATED)
                 .body(RestaurantResponse.from(restaurant));
     }
 
@@ -71,7 +70,10 @@ public class RestaurantController {
             @Valid @RequestBody UpdateRestaurantRequest request
     ) {
         return RestaurantResponse.from(restaurantService.updateRestaurant(
-                restaurantId, request.name(), request.street(), request.city()
+                restaurantId,
+                request.name(),
+                request.street(),
+                request.city()
         ));
     }
 
@@ -87,4 +89,3 @@ public class RestaurantController {
         );
     }
 }
-
