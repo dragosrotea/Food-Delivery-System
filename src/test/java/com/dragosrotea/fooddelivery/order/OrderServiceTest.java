@@ -179,7 +179,7 @@ class OrderServiceTest {
 
     @Test
     void acceptsAvailableDeliveryForDriver() {
-        UserAccount driver = mockDriver(7L, "driver@example.com");
+        UserAccount driver = mockDriver();
         FoodOrder order = mock(FoodOrder.class);
         when(userRepository.findByEmail("driver@example.com"))
                 .thenReturn(Optional.of(driver));
@@ -195,7 +195,7 @@ class OrderServiceTest {
 
     @Test
     void rejectsDeliveryAlreadyAssignedToAnotherDriver() {
-        UserAccount driver = mockDriver(7L, "driver@example.com");
+        UserAccount driver = mockDriver();
         UserAccount otherDriver = mock(UserAccount.class);
         FoodOrder order = mock(FoodOrder.class);
         when(userRepository.findByEmail("driver@example.com"))
@@ -214,12 +214,13 @@ class OrderServiceTest {
 
     @Test
     void completesDeliveryAssignedToCurrentDriver() {
-        UserAccount driver = mockDriver(7L, "driver@example.com");
+        UserAccount driver = mockDriver();
         FoodOrder order = mock(FoodOrder.class);
         when(orderRepository.findById(5L)).thenReturn(Optional.of(order));
         when(userRepository.findByEmail("driver@example.com"))
                 .thenReturn(Optional.of(driver));
         when(order.getDriver()).thenReturn(driver);
+        when(driver.getId()).thenReturn(7L);
         when(order.getStatus()).thenReturn(OrderStatus.OUT_FOR_DELIVERY);
 
         orderService.completeDelivery("driver@example.com", 5L);
@@ -229,13 +230,14 @@ class OrderServiceTest {
 
     @Test
     void preventsDifferentDriverFromCompletingDelivery() {
-        UserAccount driver = mockDriver(7L, "driver@example.com");
+        UserAccount driver = mockDriver();
         UserAccount assignedDriver = mock(UserAccount.class);
         FoodOrder order = mock(FoodOrder.class);
         when(orderRepository.findById(5L)).thenReturn(Optional.of(order));
         when(userRepository.findByEmail("driver@example.com"))
                 .thenReturn(Optional.of(driver));
         when(order.getDriver()).thenReturn(assignedDriver);
+        when(driver.getId()).thenReturn(7L);
         when(assignedDriver.getId()).thenReturn(8L);
 
         assertThrows(
@@ -246,9 +248,8 @@ class OrderServiceTest {
         verify(order, never()).changeStatus(any());
     }
 
-    private UserAccount mockDriver(Long id, String email) {
+    private UserAccount mockDriver() {
         UserAccount driver = mock(UserAccount.class);
-        when(driver.getId()).thenReturn(id);
         when(driver.getRole()).thenReturn(UserRole.DRIVER);
         return driver;
     }
