@@ -27,8 +27,14 @@ public class MenuItemService {
 
     @Transactional(readOnly = true)
     public List<MenuItem> getAvailableMenu(Long restaurantId) {
-        requireRestaurant(restaurantId);
+        requireActiveRestaurant(restaurantId);
         return menuItemRepository.findByRestaurantIdAndAvailableTrue(restaurantId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<MenuItem> getAllMenuItemsForAdmin(Long restaurantId) {
+        requireRestaurant(restaurantId);
+        return menuItemRepository.findByRestaurantId(restaurantId);
     }
 
     public MenuItem addMenuItem(
@@ -39,27 +45,54 @@ public class MenuItemService {
             String category
     ) {
         Restaurant restaurant = requireRestaurant(restaurantId);
-
         validatePrice(price);
 
-        if (menuItemRepository.existsByRestaurantIdAndNameIgnoreCase(restaurantId, name)) {
-            throw new DuplicateMenuItemException(restaurantId, name);
+        String normalizedName = name.trim();
+        String normalizedDescription = normalizeOptional(description);
+        String normalizedCategory = category.trim();
+
+        if (menuItemRepository.existsByRestaurantIdAndNameIgnoreCase(
+                restaurantId, normalizedName)) {
+            throw new DuplicateMenuItemException(restaurantId, normalizedName);
         }
 
-        MenuItem menuItem = new MenuItem(restaurant, name, description, price, category);
+        MenuItem menuItem = new MenuItem(
+                restaurant,
+                normalizedName,
+                normalizedDescription,
+                price,
+                normalizedCategory
+        );
         return menuItemRepository.save(menuItem);
     }
 
-    public MenuItem updateMenuItem(Long restaurantId, Long menuItemId, String name,
-                                   String description, BigDecimal price, String category) {
+    public MenuItem updateMenuItem(
+            Long restaurantId,
+            Long menuItemId,
+            String name,
+            String description,
+            BigDecimal price,
+            String category
+    ) {
         requireRestaurant(restaurantId);
         validatePrice(price);
+
+        String normalizedName = name.trim();
+        String normalizedDescription = normalizeOptional(description);
+        String normalizedCategory = category.trim();
         MenuItem item = requireMenuItem(restaurantId, menuItemId);
+
         if (menuItemRepository.existsByRestaurantIdAndNameIgnoreCaseAndIdNot(
-                restaurantId, name, menuItemId)) {
-            throw new DuplicateMenuItemException(restaurantId, name);
+                restaurantId, normalizedName, menuItemId)) {
+            throw new DuplicateMenuItemException(restaurantId, normalizedName);
         }
-        item.updateDetails(name, description, price, category);
+
+        item.updateDetails(
+                normalizedName,
+                normalizedDescription,
+                price,
+                normalizedCategory
+        );
         return item;
     }
 
@@ -76,9 +109,20 @@ public class MenuItemService {
         }
     }
 
+    private String normalizeOptional(String value) {
+        return value == null ? null : value.trim();
+    }
+
     private MenuItem requireMenuItem(Long restaurantId, Long menuItemId) {
         return menuItemRepository.findByIdAndRestaurantId(menuItemId, restaurantId)
-                .orElseThrow(() -> new MenuItemNotFoundInRestaurantException(menuItemId, restaurantId));
+                .orElseThrow(() ->
+                        new MenuItemNotFoundInRestaurantException(menuItemId, restaurantId)
+                );
+    }
+
+    private Restaurant requireActiveRestaurant(Long restaurantId) {
+        return restaurantRepository.findByIdAndActiveTrue(restaurantId)
+                .orElseThrow(() -> new RestaurantNotFoundException(restaurantId));
     }
 
     private Restaurant requireRestaurant(Long restaurantId) {
