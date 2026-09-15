@@ -1,28 +1,25 @@
 # Food Delivery System
 
-This is a Java desktop application I originally built as a university OOP project. It simulates a simple food delivery service with separate options for customers, drivers, and administrators.
+This is a Java food delivery application that I originally built as a university OOP project. The original version uses Java Swing and Microsoft SQL Server. I am now moving it step by step to a Spring Boot backend with PostgreSQL, with a React web interface planned for later.
 
-The original version uses Java Swing and Microsoft SQL Server. I am now moving it step by step to a Spring Boot backend with PostgreSQL, with a React web interface planned for later. The Swing source is still kept temporarily while the backend is being built.
+The Swing source is still kept temporarily while its features are moved to the backend.
 
-## What the application can do
+## What the backend can do
 
 ### Customer
 
 - Create an account and log in
-- Browse restaurants and their menus
-- Add food to a cart
-- Place an order
-
-### Driver
-
-- View orders waiting for a driver
-- Accept an order
-- Mark a delivery as completed
+- Browse active restaurants and available menu items
+- Place and cancel orders
+- View personal order history
 
 ### Administrator
 
-- Add a restaurant
-- Delete a restaurant
+- Add and update restaurants and menu items
+- Activate or deactivate restaurants and menu items
+- View all orders and advance their status
+
+Driver functionality is planned as the next backend feature.
 
 ## Technologies used
 
@@ -78,16 +75,17 @@ Create an empty PostgreSQL database named `food_delivery`:
 createdb -U postgres food_delivery
 ```
 
-Flyway creates the restaurant and menu tables automatically when the backend starts.
+Flyway creates and updates the application tables automatically when the backend starts.
 
-### 2. Configure the database connection
+### 2. Configure the application
 
-Set these environment variables before starting the application:
+Set these required environment variables before starting the application:
 
 ```bash
 export DB_URL='jdbc:postgresql://localhost:5432/food_delivery'
 export DB_USER='your_database_user'
 export DB_PASSWORD='your_database_password'
+export JWT_SECRET='replace-with-a-secret-that-is-at-least-32-bytes-long'
 ```
 
 On Windows PowerShell:
@@ -96,9 +94,10 @@ On Windows PowerShell:
 $env:DB_URL="jdbc:postgresql://localhost:5432/food_delivery"
 $env:DB_USER="your_database_user"
 $env:DB_PASSWORD="your_database_password"
+$env:JWT_SECRET="replace-with-a-secret-that-is-at-least-32-bytes-long"
 ```
 
-The `.env.example` file contains the same variable names as a reference.
+To create the initial administrator account, optionally set both `APP_ADMIN_EMAIL` and `APP_ADMIN_PASSWORD`. The `.env.example` file lists all supported variables.
 
 ### 3. Build and start the backend
 
@@ -117,7 +116,6 @@ Interactive API documentation is available at `http://localhost:8080/swagger-ui.
 
 ## Future improvements
 
-- Continue moving the existing features into the Spring Boot backend
+- Add the driver order workflow
 - Build a React web interface
-- Add secure authentication
-- Add more automated tests
+- Add Docker and PostgreSQL integration tests
