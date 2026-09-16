@@ -1,8 +1,8 @@
 # Food Delivery System
 
-A Java food delivery backend developed from a university OOP project and rebuilt with Spring Boot and PostgreSQL. A React web interface is planned as the next stage.
+A full-stack food delivery application developed from a university OOP project. The project now uses a Spring Boot and PostgreSQL backend with a React frontend under active development.
 
-## What the backend can do
+## What the application can do
 
 ### Customer
 
@@ -28,12 +28,10 @@ A Java food delivery backend developed from a university OOP project and rebuilt
 
 ## Technologies used
 
-- Java 17
-- Spring Boot
-- PostgreSQL
-- JPA and Hibernate
-- Flyway
-- Maven
+- Java 17 and Spring Boot
+- PostgreSQL, JPA, Hibernate and Flyway
+- React, TypeScript and Vite
+- Maven and npm
 - JUnit 5
 - GitHub Actions
 - OpenAPI and Swagger UI
@@ -41,57 +39,21 @@ A Java food delivery backend developed from a university OOP project and rebuilt
 ## Project structure
 
 ```text
-src/
-├── main/
-│   ├── java/com/dragosrotea/fooddelivery/
-│   │   ├── auth/
-│   │   ├── common/
-│   │   ├── config/
-│   │   ├── driver/
-│   │   ├── order/
-│   │   ├── restaurant/
-│   │   ├── security/
-│   │   └── user/
-│   └── resources/db/migration/
-└── test/
-    ├── java/
-    └── resources/
+frontend/                         React application
+src/main/java/.../fooddelivery/  Spring Boot backend
+src/main/resources/db/migration/ Flyway migrations
+src/test/                        Backend tests
 ```
 
 ```text
-Spring Boot -> JPA/Hibernate -> PostgreSQL
+React -> Spring Boot -> JPA/Hibernate -> PostgreSQL
 ```
 
-## How to run it
+## Run the backend
 
-You need:
+You need JDK 17 or newer, Maven and PostgreSQL.
 
-- JDK 17 or newer
-- Maven
-- PostgreSQL
-
-### 1. Create the database
-
-Create an empty PostgreSQL database named `food_delivery`:
-
-```bash
-createdb -U postgres food_delivery
-```
-
-Flyway creates and updates the application tables automatically when the backend starts.
-
-### 2. Configure the application
-
-Set these required environment variables before starting the application:
-
-```bash
-export DB_URL='jdbc:postgresql://localhost:5432/food_delivery'
-export DB_USER='your_database_user'
-export DB_PASSWORD='your_database_password'
-export JWT_SECRET='replace-with-a-secret-that-is-at-least-32-bytes-long'
-```
-
-On Windows PowerShell:
+Create an empty PostgreSQL database named `food_delivery`, then set:
 
 ```powershell
 $env:DB_URL="jdbc:postgresql://localhost:5432/food_delivery"
@@ -100,27 +62,32 @@ $env:DB_PASSWORD="your_database_password"
 $env:JWT_SECRET="replace-with-a-secret-that-is-at-least-32-bytes-long"
 ```
 
-The React development origin defaults to `http://localhost:5173`. Set `APP_CORS_ALLOWED_ORIGINS` if the frontend uses another origin.
+To create the initial administrator account, optionally set both `APP_ADMIN_EMAIL` and `APP_ADMIN_PASSWORD`. The root `.env.example` lists all backend variables.
 
-To create the initial administrator account, optionally set both `APP_ADMIN_EMAIL` and `APP_ADMIN_PASSWORD`. The `.env.example` file lists all supported variables.
-
-### 3. Build and start the backend
+Start the backend:
 
 ```bash
 mvn clean verify
 mvn spring-boot:run
 ```
 
-After it starts, open `http://localhost:8080/api/health`. The response should be:
+The health endpoint is available at `http://localhost:8080/api/health` and Swagger UI at `http://localhost:8080/swagger-ui.html`.
 
-```json
-{"status":"UP"}
+## Run the frontend
+
+You need Node.js 22.12 or newer. Keep the backend running, then open another terminal:
+
+```bash
+cd frontend
+npm install
+npm run dev
 ```
 
-Interactive API documentation is available at `http://localhost:8080/swagger-ui.html`.
+Open `http://localhost:5173`. The frontend API URL defaults to `http://localhost:8080`; copy `frontend/.env.example` to `frontend/.env` if you need to change it.
 
 ## Future improvements
 
-- Build a React web interface
+- Add authentication and role-aware navigation to the React interface
+- Add customer, driver and administrator frontend workflows
 - Add Docker and PostgreSQL integration tests
 - Add real-time order status updates
