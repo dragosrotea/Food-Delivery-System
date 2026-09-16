@@ -1,5 +1,7 @@
 package com.dragosrotea.fooddelivery.restaurant.api;
 
+import com.dragosrotea.fooddelivery.common.api.GlobalExceptionHandler;
+
 import com.dragosrotea.fooddelivery.restaurant.Restaurant;
 import com.dragosrotea.fooddelivery.restaurant.RestaurantService;
 import com.dragosrotea.fooddelivery.restaurant.exception.DuplicateRestaurantException;
