@@ -2,19 +2,7 @@ package com.dragosrotea.fooddelivery.order;
 
 import com.dragosrotea.fooddelivery.restaurant.Restaurant;
 import com.dragosrotea.fooddelivery.user.UserAccount;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -30,6 +18,10 @@ public class FoodOrder {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Version
+    @Column(nullable = false)
+    private long version;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "customer_id", nullable = false)
     private UserAccount customer;
@@ -37,6 +29,10 @@ public class FoodOrder {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "restaurant_id", nullable = false)
     private Restaurant restaurant;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "driver_id")
+    private UserAccount driver;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 40)
@@ -60,7 +56,12 @@ public class FoodOrder {
     protected FoodOrder() {
     }
 
-    public FoodOrder(UserAccount customer, Restaurant restaurant, String deliveryStreet, String deliveryCity) {
+    public FoodOrder(
+            UserAccount customer,
+            Restaurant restaurant,
+            String deliveryStreet,
+            String deliveryCity
+    ) {
         this.customer = customer;
         this.restaurant = restaurant;
         this.deliveryStreet = deliveryStreet;
@@ -79,9 +80,16 @@ public class FoodOrder {
         this.status = status;
     }
 
+    public void assignDriver(UserAccount driver) {
+        this.driver = driver;
+        this.status = OrderStatus.OUT_FOR_DELIVERY;
+    }
+
     public Long getId() { return id; }
+    public long getVersion() { return version; }
     public UserAccount getCustomer() { return customer; }
     public Restaurant getRestaurant() { return restaurant; }
+    public UserAccount getDriver() { return driver; }
     public OrderStatus getStatus() { return status; }
     public BigDecimal getTotalPrice() { return totalPrice; }
     public String getDeliveryStreet() { return deliveryStreet; }
