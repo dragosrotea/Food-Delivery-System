@@ -1,8 +1,6 @@
 # Food Delivery System
 
-This is a Java food delivery application that I originally built as a university OOP project. The original version uses Java Swing and Microsoft SQL Server. I am now moving it step by step to a Spring Boot backend with PostgreSQL, with a React web interface planned for later.
-
-The Swing source is still kept temporarily while its features are moved to the backend.
+A Java food delivery backend developed from a university OOP project and rebuilt with Spring Boot and PostgreSQL. A React web interface is planned as the next stage.
 
 ## What the backend can do
 
@@ -39,28 +37,26 @@ The Swing source is still kept temporarily while its features are moved to the b
 - JUnit 5
 - GitHub Actions
 - OpenAPI and Swagger UI
-- Java Swing and Microsoft SQL Server in the original version
 
 ## Project structure
 
 ```text
 src/
 ├── main/
-│   ├── java/
-│   │   ├── com/dragosrotea/fooddelivery/
-│   │   ├── database/
-│   │   ├── exceptions/
-│   │   ├── model/
-│   │   ├── services/
-│   │   └── view/
-│   └── resources/
-│       └── db/migration/
+│   ├── java/com/dragosrotea/fooddelivery/
+│   │   ├── auth/
+│   │   ├── common/
+│   │   ├── config/
+│   │   ├── driver/
+│   │   ├── order/
+│   │   ├── restaurant/
+│   │   ├── security/
+│   │   └── user/
+│   └── resources/db/migration/
 └── test/
     ├── java/
     └── resources/
 ```
-
-The new backend uses Spring Boot, JPA, and PostgreSQL. The original Swing source remains in the repository while its features are moved to the backend.
 
 ```text
 Spring Boot -> JPA/Hibernate -> PostgreSQL
@@ -103,6 +99,8 @@ $env:DB_USER="your_database_user"
 $env:DB_PASSWORD="your_database_password"
 $env:JWT_SECRET="replace-with-a-secret-that-is-at-least-32-bytes-long"
 ```
+
+The React development origin defaults to `http://localhost:5173`. Set `APP_CORS_ALLOWED_ORIGINS` if the frontend uses another origin.
 
 To create the initial administrator account, optionally set both `APP_ADMIN_EMAIL` and `APP_ADMIN_PASSWORD`. The `.env.example` file lists all supported variables.
 
