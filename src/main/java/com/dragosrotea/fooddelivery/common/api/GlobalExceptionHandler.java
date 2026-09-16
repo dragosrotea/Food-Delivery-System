@@ -1,4 +1,4 @@
-package com.dragosrotea.fooddelivery.restaurant.api;
+package com.dragosrotea.fooddelivery.common.api;
 
 import com.dragosrotea.fooddelivery.order.exception.*;
 import com.dragosrotea.fooddelivery.restaurant.exception.*;

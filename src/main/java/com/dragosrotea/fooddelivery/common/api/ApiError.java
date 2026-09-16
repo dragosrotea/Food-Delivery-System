@@ -1,4 +1,4 @@
-package com.dragosrotea.fooddelivery.restaurant.api;
+package com.dragosrotea.fooddelivery.common.api;
 
 import java.util.Map;
 
