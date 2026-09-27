@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { getRestaurants } from "../api/restaurants";
 import RestaurantCard from "../components/RestaurantCard";
 import type { Restaurant } from "../types/restaurant";
+import { useCart } from "../cart/CartContext";
 
 type LoadState = "loading" | "success" | "error";
 
@@ -18,6 +19,7 @@ export default function HomePage() {
   const [loadState, setLoadState] = useState<LoadState>("loading");
   const [errorMessage, setErrorMessage] = useState("");
   const search = searchParams.get("q")?.trim() ?? "";
+  const { restaurant: cartRestaurant, itemCount, total } = useCart();
 
   async function loadRestaurants() {
     setLoadState("loading");
@@ -157,17 +159,15 @@ export default function HomePage() {
         )}
       </section>
 
-      <aside className="cart-preview" aria-label="Future cart">
+      <aside className="cart-preview" aria-label="Cart summary">
         <div>
           <p className="eyebrow">Your order</p>
-          <h2>Cart coming next</h2>
-          <p>
-            Choose a restaurant and explore its menu. Adding items and checkout
-            will be implemented as a separate, reviewable feature.
-          </p>
+          <h2>{cartRestaurant?.name ?? "Your cart is empty"}</h2>
+          <p>{itemCount > 0 ? `${itemCount} item${itemCount === 1 ? "" : "s"} · ${total.toFixed(2)} RON` : "Choose a restaurant and add something from its menu."}</p>
+          {itemCount > 0 && <Link className="button button-small" to="/cart">Review cart</Link>}
         </div>
         <div className="cart-preview__empty" aria-hidden="true">
-          <span>0</span>
+          <span>{itemCount}</span>
           <small>items</small>
         </div>
       </aside>

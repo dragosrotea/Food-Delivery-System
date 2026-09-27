@@ -1,6 +1,7 @@
 import { FormEvent, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
+import { useCart } from "../cart/CartContext";
 
 const accountPaths = { CUSTOMER: "/account", DRIVER: "/driver", ADMIN: "/admin" } as const;
 
@@ -8,6 +9,7 @@ export default function AppLayout() {
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { itemCount } = useCart();
   const accountPath = user ? accountPaths[user.role] : "/login";
 
   function submitSearch(event: FormEvent<HTMLFormElement>) {
@@ -33,10 +35,8 @@ export default function AppLayout() {
             <span aria-hidden="true">◫</span>
             <span>Restaurants</span>
           </a>
-          <span className="nav-disabled" aria-disabled="true">
-            <span aria-hidden="true">♡</span>
-            <span>Orders soon</span>
-          </span>
+          <NavLink to="/cart"><span aria-hidden="true">▢</span><span>Cart {itemCount > 0 && `(${itemCount})`}</span></NavLink>
+          {user?.role === "CUSTOMER" && <NavLink to="/account"><span aria-hidden="true">♡</span><span>Orders</span></NavLink>}
         </nav>
 
         <NavLink className="side-nav__login" to={accountPath}>
@@ -82,7 +82,7 @@ export default function AppLayout() {
 
       <nav className="mobile-nav" aria-label="Mobile navigation">
         <NavLink to="/" end><span aria-hidden="true">⌂</span><small>Home</small></NavLink>
-        <a href="/#restaurants"><span aria-hidden="true">◫</span><small>Browse</small></a>
+        <NavLink to="/cart"><span aria-hidden="true">▢</span><small>Cart {itemCount > 0 && `(${itemCount})`}</small></NavLink>
         <NavLink to={accountPath}><span aria-hidden="true">◎</span><small>Account</small></NavLink>
       </nav>
     </div>

@@ -5,6 +5,7 @@ import { getRestaurant, getRestaurantMenu } from "../api/restaurants";
 import MenuItemCard from "../components/MenuItemCard";
 import type { MenuItem } from "../types/menuItem";
 import type { Restaurant } from "../types/restaurant";
+import { useCart } from "../cart/CartContext";
 
 type LoadState = "loading" | "success" | "error" | "not-found";
 
@@ -17,6 +18,19 @@ export default function RestaurantPage() {
   const [errorMessage, setErrorMessage] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
   const [search, setSearch] = useState("");
+  const [cartMessage, setCartMessage] = useState("");
+  const { restaurant: cartRestaurant, addItem, replaceCart } = useCart();
+
+  function handleAdd(item: MenuItem) {
+    if (!restaurant) return;
+    const selectedRestaurant = { id: restaurant.id, name: restaurant.name };
+    if (!addItem(selectedRestaurant, item)) {
+      const replace = window.confirm(`Your cart contains items from ${cartRestaurant?.name}. Clear it and start a new order from ${restaurant.name}?`);
+      if (!replace) return;
+      replaceCart(selectedRestaurant, item);
+    }
+    setCartMessage(`${item.name} added to your cart.`);
+  }
 
   async function loadRestaurant() {
     if (!Number.isInteger(numericId) || numericId <= 0) {
@@ -154,6 +168,8 @@ export default function RestaurantPage() {
         </label>
       </div>
 
+      {cartMessage && <div className="cart-toast" role="status">{cartMessage}<Link to="/cart">View cart</Link></div>}
+
       {menuItems.length === 0 ? (
         <div className="status-panel">
           <div>
@@ -186,7 +202,7 @@ export default function RestaurantPage() {
           ) : (
             <div className="menu-grid">
               {visibleItems.map((item) => (
-                <MenuItemCard item={item} key={item.id} />
+                <MenuItemCard item={item} key={item.id} onAdd={handleAdd} />
               ))}
             </div>
           )}
