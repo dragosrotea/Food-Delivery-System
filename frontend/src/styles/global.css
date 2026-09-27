@@ -735,7 +735,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
     position: relative;
     min-height: auto;
     padding: 14px;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto auto;
   }
   .global-search { min-width: 0; }
   .account-pill { min-width: 42px; }
