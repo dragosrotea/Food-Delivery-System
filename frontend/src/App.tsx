@@ -8,6 +8,9 @@ import RegisterPage from "./pages/RegisterPage";
 import AccessDeniedPage from "./pages/AccessDeniedPage";
 import RoleHomePage from "./pages/RoleHomePage";
 import ProtectedRoute from "./components/ProtectedRoute";
+import CartPage from "./pages/CartPage";
+import CheckoutPage from "./pages/CheckoutPage";
+import CustomerOrdersPage from "./pages/CustomerOrdersPage";
 
 export default function App() {
   return (
@@ -18,8 +21,10 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forbidden" element={<AccessDeniedPage />} />
+        <Route path="/cart" element={<CartPage />} />
         <Route element={<ProtectedRoute allowedRoles={["CUSTOMER"]} />}>
-          <Route path="/account" element={<RoleHomePage />} />
+          <Route path="/account" element={<CustomerOrdersPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
         </Route>
         <Route element={<ProtectedRoute allowedRoles={["DRIVER"]} />}>
           <Route path="/driver" element={<RoleHomePage />} />

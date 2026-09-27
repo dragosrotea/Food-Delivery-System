@@ -2,9 +2,10 @@ import type { MenuItem } from "../types/menuItem";
 
 type MenuItemCardProps = {
   item: MenuItem;
+  onAdd: (item: MenuItem) => void;
 };
 
-export default function MenuItemCard({ item }: MenuItemCardProps) {
+export default function MenuItemCard({ item, onAdd }: MenuItemCardProps) {
   return (
     <article className="menu-card">
       <div className="menu-card__visual" aria-hidden="true">
@@ -18,7 +19,7 @@ export default function MenuItemCard({ item }: MenuItemCardProps) {
         </div>
         <div className="menu-card__footer">
           <strong>{item.price.toFixed(2)} RON</strong>
-          <span className="menu-card__status">Available</span>
+          <button className="menu-card__add" type="button" onClick={() => onAdd(item)}>Add to cart</button>
         </div>
       </div>
     </article>
