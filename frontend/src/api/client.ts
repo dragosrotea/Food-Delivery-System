@@ -1,3 +1,5 @@
+import { clearStoredSession, getStoredToken } from "../auth/session";
+
 const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:8080";
 
 type ApiErrorBody = {
@@ -14,12 +16,25 @@ export class ApiError extends Error {
   }
 }
 
-export async function apiRequest<T>(path: string): Promise<T> {
+export type ApiRequestOptions = RequestInit & { authenticated?: boolean };
+
+export async function apiRequest<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
+  const { authenticated = false, headers, ...requestOptions } = options;
+  const token = authenticated ? getStoredToken() : null;
   const response = await fetch(`${API_URL}${path}`, {
+    ...requestOptions,
     headers: {
       Accept: "application/json",
+      ...(requestOptions.body ? { "Content-Type": "application/json" } : {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...headers,
     },
   });
+
+  if (response.status === 401 && authenticated) {
+    clearStoredSession();
+    window.dispatchEvent(new Event("auth:unauthorized"));
+  }
 
   if (!response.ok) {
     let body: ApiErrorBody | undefined;
@@ -36,5 +51,6 @@ export async function apiRequest<T>(path: string): Promise<T> {
     );
   }
 
+  if (response.status === 204) return undefined as T;
   return (await response.json()) as T;
 }

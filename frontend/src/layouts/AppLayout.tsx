@@ -1,9 +1,14 @@
 import { FormEvent, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
+
+const accountPaths = { CUSTOMER: "/account", DRIVER: "/driver", ADMIN: "/admin" } as const;
 
 export default function AppLayout() {
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+  const accountPath = user ? accountPaths[user.role] : "/login";
 
   function submitSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -34,9 +39,9 @@ export default function AppLayout() {
           </span>
         </nav>
 
-        <NavLink className="side-nav__login" to="/login">
+        <NavLink className="side-nav__login" to={accountPath}>
           <span aria-hidden="true">◎</span>
-          <span>Log in</span>
+          <span>{user ? "Account" : "Log in"}</span>
         </NavLink>
       </aside>
 
@@ -60,13 +65,14 @@ export default function AppLayout() {
             <button type="submit">Search</button>
           </form>
 
-          <NavLink className="account-pill" to="/login">
-            <span className="account-pill__avatar" aria-hidden="true">G</span>
+          <NavLink className="account-pill" to={accountPath}>
+            <span className="account-pill__avatar" aria-hidden="true">{user?.email.charAt(0).toUpperCase() ?? "G"}</span>
             <span>
-              <strong>Guest</strong>
-              <small>Log in</small>
+              <strong>{user?.email ?? "Guest"}</strong>
+              <small>{user?.role.toLowerCase() ?? "Log in"}</small>
             </span>
           </NavLink>
+          {user && <button className="logout-button" type="button" onClick={() => { signOut(); navigate("/"); }}>Log out</button>}
         </header>
 
         <main className="app-content">
@@ -77,7 +83,7 @@ export default function AppLayout() {
       <nav className="mobile-nav" aria-label="Mobile navigation">
         <NavLink to="/" end><span aria-hidden="true">⌂</span><small>Home</small></NavLink>
         <a href="/#restaurants"><span aria-hidden="true">◫</span><small>Browse</small></a>
-        <NavLink to="/login"><span aria-hidden="true">◎</span><small>Account</small></NavLink>
+        <NavLink to={accountPath}><span aria-hidden="true">◎</span><small>Account</small></NavLink>
       </nav>
     </div>
   );
